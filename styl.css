@@ -3,271 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria Miłości</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+    <title>Nasza Królewska Galeria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     
     <style>
-        /* --- TU SĄ STYLE (WYGLĄD) --- */
+        /* --- STYLIZACJA CAŁEGO POKOJU 3D --- */
         body {
-            background-color: #2b1d1d; /* Ciemne tło */
-            background-image: radial-gradient(circle, #422a2a 0%, #1a0f0f 100%);
-            color: #f0e6d2;
-            font-family: 'Playfair Display', serif; /* Elegancka czcionka */
             margin: 0;
-            padding: 20px;
-            min-height: 100vh;
+            padding: 0;
+            height: 100vh;
+            background-color: #111; /* Ciemne tło za pokojem */
+            overflow: hidden; /* Ukrywamy paski przewijania */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Kontener z perspektywą 3D */
+        .room-container {
+            width: 100vw;
+            height: 100vh;
+            perspective: 1200px; /* Głębokość 3D */
+            position: relative;
+        }
+
+        /* Scena 3D */
+        .room {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            /* Lekkie pochylenie kamery w dół, żeby widzieć podłogę */
+            transform: rotateX(5deg); 
+        }
+
+        /* Ściana */
+        .wall {
+            position: absolute;
+            width: 120%; /* Szersza niż ekran */
+            height: 80vh;
+            left: -10%;
+            top: 0;
+            /* Niebieskawy kolor ściany jak na zdjęciu, z cieniem u góry */
+            background: linear-gradient(to bottom, #4a6d8c, #7396b5 30%, #8fb2d1);
+            box-shadow: inset 0 50px 100px rgba(0,0,0,0.5); /* Cień pod sufitem */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+             /* Odsunięcie ściany w głąb */
+            transform: translateZ(-300px);
+        }
+
+        /* Ozdobna listwa przysufitowa (gzyms) */
+        .molding-top {
+            position: absolute;
+            top: -20px;
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(to bottom, #fff, #eee, #ccc);
+            border-bottom: 5px solid #999;
+        }
+
+        /* Podłoga (Parkiet w jodełkę) */
+        .floor {
+            position: absolute;
+            top: 80vh; /* Zaczyna się tam, gdzie kończy ściana */
+            width: 120%;
+            height: 50vh;
+            left: -10%;
+            /* Symulacja drewnianego parkietu za pomocą gradientów */
+            background-color: #c2a370;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
+            box-shadow: inset 0 20px 50px rgba(0,0,0,0.6); /* Cień rzucany przez ścianę na podłogę */
+            /* Obrót podłogi, żeby leżała płasko */
+            transform: rotateX(85deg) translateZ(-300px); 
+            transform-origin: top;
+        }
+
+        /* Nagłówek na ścianie */
+        h1 {
+            font-family: 'Cinzel Decorative', cursive;
+            color: #fadd75; /* Złoty kolor */
+            font-size: 3rem;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7), 0 0 10px rgba(250, 221, 117, 0.5);
+            margin-bottom: 40px;
             text-align: center;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-            color: #eebb55; /* Złoty tekst */
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            letter-spacing: 2px;
-        }
-        
-        .header p {
-            font-style: italic;
-            opacity: 0.8;
-        }
-
-        .wall {
+        /* Siatka z obrazami */
+        .gallery-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 40px;
-            max-width: 1200px;
-            margin: 60px auto; 
-            padding-bottom: 80px;
+            gap: 50px;
+            max-width: 1000px;
+            /* Lekkie pochylenie obrazów, żeby pasowały do perspektywy */
+           /* transform: rotateX(-5deg); */
         }
 
-        /* --- MIEJSCE NA ŚCIANIE --- */
-        .spot {
+        /* --- MIEJSCE NA OBRAZ (SPOT) --- */
+        .frame-spot {
             position: relative;
-            width: 200px;
-            height: 300px;
+            width: 160px;
             display: flex;
-            justify-content: center;
-        }
-
-        /* --- GWÓŹDŹ --- */
-        .nail {
-            width: 12px;
-            height: 12px;
-            background: #555;
-            border-radius: 50%;
-            box-shadow: 1px 1px 2px black;
-            position: absolute;
-            top: 0;
-            z-index: 10;
-        }
-
-        /* --- KARTECZKA Z NUMEREM GRY --- */
-        .hanging-tag {
+            flex-direction: column;
+            align-items: center;
             cursor: pointer;
-            position: absolute;
-            top: 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: transform 0.3s ease-in-out;
-            z-index: 5;
+            transition: transform 0.3s;
         }
 
-        .hanging-tag:hover {
-            transform: rotate(5deg) scale(1.1);
+        .frame-spot:hover {
+           transform: scale(1.05) translateZ(20px); /* Lekkie przybliżenie przy najechaniu */
         }
 
-        .string {
-            width: 2px;
-            height: 60px;
-            background: #d4c5a6; 
-        }
-
-        .tag-paper {
-            background: #fdfbf7;
-            color: #333;
-            padding: 15px 20px;
-            border-radius: 2px;
-            box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
-            text-align: center;
-            border: 1px solid #ddd;
-            min-width: 80px;
-        }
-
-        .tag-paper span {
-            display: block;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: #8b0000;
-        }
-
-        /* --- OBRAZ W RAMIE --- */
-        .hanging-frame {
-            position: absolute;
-            top: 6px;
-            display: flex; /* Flex, ale domyślnie ukrywamy przez JS */
-            flex-direction: column;
-            align-items: center;
-            animation: swing 2s ease-out;
-            display: none; /* Domyślnie ukryte */
-            z-index: 6;
-        }
-
-        .wire {
-            width: 0;
-            height: 0;
-            border-left: 60px solid transparent;
-            border-right: 60px solid transparent;
-            border-bottom: 40px solid #444;
-            opacity: 0.8;
-            margin-bottom: -2px;
-        }
-
-        .gold-frame {
-            width: 180px;
-            height: 240px;
-            background: #1a0f0f; /* Tło ramki jak nie ma zdjęcia */
-            border: 10px solid #eebb55;
-            border-image: linear-gradient(45deg, #b88a44, #eebb55, #8a6e34, #eebb55) 1;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+        /* --- ZAAWANSOWANA ZŁOTA RAMA (Barokowa) --- */
+        .baroque-frame {
+            width: 160px;
+            height: 220px;
+            background-color: #0a0a0a; /* Ciemne tło gdy nie ma zdjęcia */
+            position: relative;
+            
+            /* To tworzy efekt bogatej, wielowarstwowej złotej ramy */
+            border-style: solid;
+            border-width: 15px;
+            /* Złoty gradient na ramie */
+            border-image: linear-gradient(to bottom right, #fadd75, #d4af37 20%, #996515 50%, #d4af37 80%, #fadd75) 1;
+            
+            /* Złożone cienie dla efektu 3D i głębi */
+            box-shadow: 
+                /* Wewnętrzny cień (głębia obrazu) */
+                inset 0 0 20px rgba(0,0,0,0.9),
+                /* Cień rzucany na ścianę */
+                0 15px 30px rgba(0,0,0,0.7),
+                /* Zewnętrzne krawędzie ramy (imitacja zdobień) */
+                0 0 0 5px #8a6e34,
+                0 0 0 8px #eebb55;
+            
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            color: #555; /* Kolor tekstu alternatywnego */
         }
 
-        .gold-frame img {
+        /* Zdjęcie wewnątrz ramy */
+        .baroque-frame img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+            /* Jeśli nie ma src, ukrywamy ikonę błędu */
+            opacity: 0; 
+            transition: opacity 0.5s;
+        }
+        /* Jeśli zdjęcie ma src, pokazujemy je */
+        .baroque-frame img[src*="."] {
+            opacity: 1;
         }
 
-        /* Animacja wieszania */
-        @keyframes swing {
-            0% { transform: rotate(10deg); }
-            50% { transform: rotate(-5deg); }
-            100% { transform: rotate(0deg); }
+
+        /* --- TABLICZKA Z NAZWĄ GRY (Przed wygraną) --- */
+        .game-plaque {
+            margin-top: 20px;
+            background: linear-gradient(to right, #d4af37, #fadd75, #d4af37);
+            padding: 8px 15px;
+            border-radius: 4px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+            text-align: center;
+            color: #422a2a;
+            border: 2px solid #8a6e34;
+            width: 120px;
         }
 
-        /* Przycisk resetu (ładniejszy) */
+        .game-plaque span {
+            display: block;
+            font-family: 'Cinzel Decorative', cursive;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .game-plaque small {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        /* PRZYCISK RESETU (Dla testów) */
         #reset-btn {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: rgba(139, 0, 0, 0.3);
-            color: #aaa;
-            border: 1px solid #555;
-            padding: 8px 15px;
+            background: rgba(139, 0, 0, 0.5);
+            color: #fff;
+            border: 1px solid #fadd75;
+            padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 12px;
-            transition: 0.3s;
+            z-index: 1000;
+            font-family: 'Playfair Display', serif;
         }
-        #reset-btn:hover {
-            background: red;
-            color: white;
-            opacity: 1;
-        }
+        #reset-btn:hover { background: red; }
+
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Nasza Kolekcja Wspomnień</h1>
-        <p>Wypełnij puste miejsca na ścianie...</p>
-    </div>
+    <div class="room-container">
+        <div class="room">
+            
+            <div class="floor"></div>
 
-    <div class="wall">
-        
-        <div class="spot">
-            <div class="nail"></div>
-            <div id="tag-1" class="hanging-tag" onclick="idzDoGry(1)">
-                <div class="string"></div>
-                <div class="tag-paper"><span>GRA 1</span><small>Serca</small></div>
-            </div>
-            <div id="frame-1" class="hanging-frame">
-                <div class="wire"></div>
-                <div class="gold-frame"><img src="fotka1.jpg" alt="Tu będzie FOTKA 1"></div>
-            </div>
-        </div>
+            <div class="wall">
+                <div class="molding-top"></div> <h1>Kolekcja Naszej Miłości</h1>
+                
+                <div class="gallery-grid">
+                    
+                    <div class="frame-spot" onclick="idzDoGry(1)">
+                        <div class="baroque-frame">
+                            <img src="fotka1.jpg" id="img-1">
+                        </div>
+                        <div class="game-plaque" id="plaque-1">
+                            <span>GRA 1</span>
+                            <small>Deszcz Serc</small>
+                        </div>
+                    </div>
 
-        <div class="spot">
-            <div class="nail"></div>
-            <div id="tag-2" class="hanging-tag" onclick="idzDoGry(2)">
-                <div class="string"></div>
-                <div class="tag-paper"><span>GRA 2</span><small>Pary</small></div>
-            </div>
-            <div id="frame-2" class="hanging-frame">
-                <div class="wire"></div>
-                <div class="gold-frame"><img src="fotka2.jpg" alt="Tu będzie FOTKA 2"></div>
-            </div>
-        </div>
+                    <div class="frame-spot" onclick="idzDoGry(2)">
+                        <div class="baroque-frame">
+                            <img src="fotka2.jpg" id="img-2">
+                        </div>
+                        <div class="game-plaque" id="plaque-2">
+                            <span>GRA 2</span>
+                            <small>Znajdź Pary</small>
+                        </div>
+                    </div>
 
-        <div class="spot">
-            <div class="nail"></div>
-            <div id="tag-3" class="hanging-tag" onclick="idzDoGry(3)">
-                <div class="string"></div>
-                <div class="tag-paper"><span>GRA 3</span><small>Quiz</small></div>
-            </div>
-            <div id="frame-3" class="hanging-frame">
-                <div class="wire"></div>
-                <div class="gold-frame"><img src="fotka3.jpg" alt="Tu będzie FOTKA 3"></div>
-            </div>
-        </div>
+                    <div class="frame-spot" onclick="idzDoGry(3)">
+                        <div class="baroque-frame">
+                            <img src="fotka3.jpg" id="img-3">
+                        </div>
+                        <div class="game-plaque" id="plaque-3">
+                            <span>GRA 3</span>
+                            <small>Nasz Quiz</small>
+                        </div>
+                    </div>
 
-        <div class="spot">
-            <div class="nail"></div>
-            <div id="tag-4" class="hanging-tag" onclick="idzDoGry(4)">
-                <div class="string"></div>
-                <div class="tag-paper"><span>GRA 4</span><small>Puzzle</small></div>
-            </div>
-            <div id="frame-4" class="hanging-frame">
-                <div class="wire"></div>
-                <div class="gold-frame"><img src="fotka4.jpg" alt="Tu będzie FOTKA 4"></div>
-            </div>
-        </div>
+                    <div class="frame-spot" onclick="idzDoGry(4)">
+                        <div class="baroque-frame">
+                            <img src="fotka4.jpg" id="img-4">
+                        </div>
+                        <div class="game-plaque" id="plaque-4">
+                            <span>GRA 4</span>
+                            <small>Puzzle</small>
+                        </div>
+                    </div>
 
-        <div class="spot">
-            <div class="nail"></div>
-            <div id="tag-5" class="hanging-tag" onclick="idzDoGry(5)">
-                <div class="string"></div>
-                <div class="tag-paper"><span>GRA 5</span><small>Sekret</small></div>
-            </div>
-            <div id="frame-5" class="hanging-frame">
-                <div class="wire"></div>
-                <div class="gold-frame"><img src="fotka5.jpg" alt="Tu będzie FOTKA 5"></div>
-            </div>
-        </div>
+                    <div class="frame-spot" onclick="idzDoGry(5)">
+                        <div class="baroque-frame">
+                            <img src="fotka5.jpg" id="img-5">
+                        </div>
+                        <div class="game-plaque" id="plaque-5">
+                            <span>GRA 5</span>
+                            <small>Niespodzianka</small>
+                        </div>
+                    </div>
 
-    </div>
-
-    <button id="reset-btn" onclick="resetuj()">RESETUJ POSTĘP</button>
+                </div> </div> </div> </div> <button id="reset-btn" onclick="resetuj()">RESETUJ POSTĘP (Test)</button>
 
     <script>
+        // LOGIKA MUZEUM
         document.addEventListener("DOMContentLoaded", () => {
+            // Sprawdzamy wszystkie 5 gier
             for (let i = 1; i <= 5; i++) {
-                if (localStorage.getItem('wygrana' + i) === 'tak') {
-                    pokazObraz(i);
-                }
+                const czyWygrana = localStorage.getItem('wygrana' + i) === 'tak';
+                aktualizujRamke(i, czyWygrana);
             }
         });
 
-        function pokazObraz(nr) {
-            document.getElementById('tag-' + nr).style.display = 'none';
-            document.getElementById('frame-' + nr).style.display = 'flex';
+        function aktualizujRamke(nr, wygrana) {
+            const img = document.getElementById('img-' + nr);
+            const plaque = document.getElementById('plaque-' + nr);
+            const spot = plaque.parentElement; // Cały element frame-spot
+
+            if (wygrana) {
+                // Jeśli wygrana: ukrywamy tabliczkę
+                plaque.style.display = 'none';
+                // Obrazek w środku staje się widoczny (dzięki CSS opacity: 1)
+                // Kliknięcie w ramkę już nie przenosi do gry, tylko np. powiększa (opcjonalnie)
+                spot.onclick = () => alert("To wspomnienie jest już Twoje! ❤️");
+                spot.style.cursor = 'default';
+            } else {
+                // Jeśli NIE wygrana: upewniamy się, że obrazka nie widać
+                // (CSS opacity: 0 załatwia sprawę, gdy nie ma pliku src)
+            }
         }
 
         function idzDoGry(nr) {
-            window.location.href = 'gra' + nr + '.html';
+            // Przenosi tylko jeśli gra nie jest jeszcze wygrana
+            if (localStorage.getItem('wygrana' + nr) !== 'tak') {
+                 window.location.href = 'gra' + nr + '.html';
+            }
         }
 
         function resetuj() {
-            localStorage.clear();
-            location.reload();
+            if(confirm("Czy na pewno chcesz zresetować cały postęp?")) {
+                localStorage.clear();
+                location.reload();
+            }
         }
     </script>
 </body>
