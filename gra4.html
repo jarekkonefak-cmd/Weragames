@@ -1,1 +1,263 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle - Nasze Wspomnienie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --bg: #fdfbf7;
+        }
 
+        body {
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Playfair Display', serif;
+            min-height: 100vh;
+            touch-action: none; /* Blokada scrolla przy przesuwaniu */
+        }
+
+        h2 {
+            font-family: 'Dancing Script', cursive;
+            color: var(--gold);
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            width: 300px;
+            height: 300px;
+            background-color: #ddd;
+            border: 5px solid var(--gold);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .tile {
+            width: 100px;
+            height: 100px;
+            background-image: url('puzzle.jpg'); /* Tu będzie Twoje zdjęcie */
+            background-size: 300px 300px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-sizing: border-box;
+        }
+
+        .tile.empty {
+            background: #eee;
+            cursor: default;
+        }
+
+        /* Przyciski pomocnicze */
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: white;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--gold);
+            color: white;
+        }
+
+        /* Okno wygranej */
+        #win-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 100;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        #win-modal.show { transform: translate(-50%, -50%) scale(1); }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 90;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Ułóż nasze zdjęcie ❤️</h2>
+
+    <div id="puzzle-container"></div>
+
+    <div class="controls">
+        <button class="btn" onclick="shuffleTiles()">Pomieszaj</button>
+        <button class="btn" onmousedown="showPreview(true)" onmouseup="showPreview(false)" ontouchstart="showPreview(true)" ontouchend="showPreview(false)">Podgląd</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div id="win-modal">
+        <h3 style="color: var(--gold); font-family: 'Dancing Script'; font-size: 2rem;">Wspaniale!</h3>
+        <p>Kolejny element układanki odnaleziony.</p>
+        <button class="btn" onclick="goBack()">Wróć do Galerii</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('puzzle-container');
+        let tiles = [];
+        const size = 3;
+        const totalTiles = size * size;
+        let emptyIndex = totalTiles - 1;
+
+        // Inicjalizacja kafelków
+        function init() {
+            for (let i = 0; i < totalTiles; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                if (i === emptyIndex) {
+                    tile.classList.add('empty');
+                    tile.style.backgroundImage = 'none';
+                } else {
+                    const row = Math.floor(i / size);
+                    const col = i % size;
+                    tile.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                }
+                tile.addEventListener('click', () => moveTile(i));
+                tiles.push(tile);
+                container.appendChild(tile);
+            }
+            // Mieszamy na start
+            setTimeout(shuffleTiles, 500);
+        }
+
+        function moveTile(index) {
+            if (isAdjacent(index, emptyIndex)) {
+                swap(index, emptyIndex);
+                emptyIndex = index;
+                checkWin();
+            }
+        }
+
+        function isAdjacent(i1, i2) {
+            const r1 = Math.floor(i1 / size), c1 = i1 % size;
+            const r2 = Math.floor(i2 / size), c2 = i2 % size;
+            return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+        }
+
+        function swap(i1, i2) {
+            const tempHTML = tiles[i1].innerHTML;
+            const tempBG = tiles[i1].style.backgroundPosition;
+            const tempClass = tiles[i1].className;
+
+            tiles[i1].className = tiles[i2].className;
+            tiles[i1].style.backgroundPosition = tiles[i2].style.backgroundPosition;
+            if (tiles[i2].classList.contains('empty')) {
+                tiles[i1].style.backgroundImage = 'none';
+            } else {
+                tiles[i1].style.backgroundImage = "url('puzzle.jpg')";
+            }
+
+            tiles[i2].className = tempClass;
+            tiles[i2].style.backgroundPosition = tempBG;
+            if (tempClass.includes('empty')) {
+                tiles[i2].style.backgroundImage = 'none';
+            } else {
+                tiles[i2].style.backgroundImage = "url('puzzle.jpg')";
+            }
+        }
+
+        function shuffleTiles() {
+            for (let i = 0; i < 200; i++) {
+                const neighbors = getNeighbors(emptyIndex);
+                const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                swap(randomNeighbor, emptyIndex);
+                emptyIndex = randomNeighbor;
+            }
+        }
+
+        function getNeighbors(index) {
+            const neighbors = [];
+            const r = Math.floor(index / size), c = index % size;
+            if (r > 0) neighbors.push(index - size);
+            if (r < size - 1) neighbors.push(index + size);
+            if (c > 0) neighbors.push(index - 1);
+            if (c < size - 1) neighbors.push(index + 1);
+            return neighbors;
+        }
+
+        function showPreview(show) {
+            tiles.forEach((tile, i) => {
+                if (show) {
+                    const row = Math.floor(i / size);
+                    const col = i % size;
+                    tile.style.backgroundImage = "url('puzzle.jpg')";
+                    tile.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                    tile.style.opacity = "0.5";
+                } else {
+                    const isNowEmpty = tiles[i].classList.contains('empty');
+                    tile.style.backgroundImage = isNowEmpty ? 'none' : "url('puzzle.jpg')";
+                    tile.style.opacity = "1";
+                }
+            });
+        }
+
+        function checkWin() {
+            let win = true;
+            tiles.forEach((tile, i) => {
+                if (tile.classList.contains('empty')) {
+                    if (i !== totalTiles - 1) win = false;
+                } else {
+                    const row = Math.floor(i / size);
+                    const col = i % size;
+                    const expectedPos = `-${col * 100}px -${row * 100}px`;
+                    if (tile.style.backgroundPosition !== expectedPos) win = false;
+                }
+            });
+
+            if (win) {
+                // Pokazujemy brakujący element
+                tiles[emptyIndex].style.backgroundImage = "url('puzzle.jpg')";
+                tiles[emptyIndex].style.backgroundPosition = "-200px -200px";
+                tiles[emptyIndex].classList.remove('empty');
+                
+                localStorage.setItem('wygrana4', 'tak');
+                setTimeout(() => {
+                    document.getElementById('overlay').style.display = 'block';
+                    document.getElementById('win-modal').classList.add('show');
+                }, 500);
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
