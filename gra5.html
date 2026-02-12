@@ -1,218 +1,221 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finał - Automat Szczęścia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>Gra 5: Nasza Konstelacja</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --gold: #d4af37;
-            --red: #ff4d4d;
-        }
-
         body {
-            background: #fdfbf7;
             margin: 0;
+            padding: 0;
+            background: #050510; /* Głęboki granat nocy */
+            color: white;
+            font-family: 'Playfair Display', serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            font-family: 'Playfair Display', serif;
+            height: 100vh;
             overflow: hidden;
+            touch-action: none;
         }
 
         h2 {
             font-family: 'Dancing Script', cursive;
-            color: var(--gold);
-            font-size: 2.5rem;
+            color: #fcf6ba;
+            font-size: 2.2rem;
+            text-align: center;
             margin-bottom: 20px;
+            pointer-events: none;
         }
 
-        /* --- AUTOMAT --- */
-        .slot-machine {
-            background: linear-gradient(145deg, #333, #111);
-            padding: 30px;
-            border: 8px solid var(--gold);
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            position: relative;
+        #star-canvas {
+            background: radial-gradient(circle at center, #101025 0%, #050510 100%);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            cursor: crosshair;
         }
 
-        .reels {
-            display: flex;
-            gap: 15px;
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            border: inset 5px #555;
+        .instruction {
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
         }
 
-        .reel {
-            width: 80px;
-            height: 100px;
-            background: #fff;
-            border: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 50px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .reel-content {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.1s linear;
-        }
-
-        /* --- DŹWIGNIA --- */
-        .lever-container {
-            position: absolute;
-            right: -60px;
-            top: 50px;
-            width: 20px;
-            height: 100px;
-            background: #222;
-            border-radius: 10px;
-        }
-
-        .lever-arm {
-            width: 10px;
-            height: 80px;
-            background: #555;
-            position: absolute;
-            left: 5px;
-            top: 10px;
-            transform-origin: bottom center;
-            transition: transform 0.5s;
-            cursor: pointer;
-        }
-
-        .lever-knob {
-            width: 40px;
-            height: 40px;
-            background: var(--red);
-            border-radius: 50%;
-            position: absolute;
-            top: -20px;
-            left: -15px;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-        }
-
-        /* --- LIST FINAŁOWY --- */
-        #final-letter {
+        #final-msg {
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            width: 85%;
-            max-width: 400px;
-            background: #fff;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
             z-index: 100;
             transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid #eee;
+            width: 80%;
+            max-width: 350px;
         }
 
-        #final-letter.show { transform: translate(-50%, -50%) scale(1); }
+        #final-msg.show { transform: translate(-50%, -50%) scale(1); }
 
-        .btn-end {
-            background: var(--gold);
+        .btn-gold {
+            background: #d4af37;
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 30px;
+            padding: 12px 25px;
+            border-radius: 25px;
             cursor: pointer;
             margin-top: 20px;
             font-family: inherit;
+            text-decoration: none;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
 
-    <h2>Twoje Szczęśliwe Losowanie ❤️</h2>
+    <h2 id="header">Połącz gwiazdy na naszym niebie...</h2>
 
-    <div class="slot-machine">
-        <div class="reels">
-            <div class="reel" id="reel1"><div class="reel-content">❓</div></div>
-            <div class="reel" id="reel2"><div class="reel-content">❓</div></div>
-            <div class="reel" id="reel3"><div class="reel-content">❓</div></div>
-        </div>
+    <canvas id="star-canvas"></canvas>
 
-        <div class="lever-container" onclick="pullLever()">
-            <div class="lever-arm" id="lever">
-                <div class="lever-knob"></div>
-            </div>
-        </div>
-    </div>
+    <p class="instruction" id="hint">Przeciągnij palcem od gwiazdy do gwiazdy</p>
 
-    <div id="final-letter">
-        <h3 style="font-family: 'Dancing Script'; font-size: 2rem; color: var(--red);">Moja Wygrana!</h3>
-        <p id="letter-text">Wszystkie obrazy zostały odblokowane. To Ty jesteś moją największą wygraną każdego dnia. Kocham Cię!</p>
-        <button class="btn-end" onclick="finishAll()">Odbierz ostatni obraz</button>
+    <div id="final-msg">
+        <h3 style="font-family: 'Dancing Script'; font-size: 2rem; color: #d4af37; margin: 0;">Nasza Gwiazdka!</h3>
+        <p>Wszystkie wspomnienia są już na swoim miejscu. Jesteś sensem mojego wszechświata.</p>
+        <a href="index.html" class="btn-gold">Wróć do Galerii</a>
     </div>
 
     <script>
-        const symbols = ['❤️', '💍', '🌹', '💎', '💋', '🧸'];
-        let isSpinning = false;
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = Math.min(window.innerWidth - 40, 350);
+        canvas.height = 450;
 
-        function pullLever() {
-            if (isSpinning) return;
-            isSpinning = true;
+        // Punkty konstelacji (kształt serca)
+        const points = [
+            {x: 175, y: 120, connected: false}, // Góra środek
+            {x: 100, y: 80,  connected: false}, // Lewy łuk
+            {x: 40,  y: 140, connected: false}, // Lewy bok
+            {x: 175, y: 380, connected: false}, // Dół
+            {x: 310, y: 140, connected: false}, // Prawy bok
+            {x: 250, y: 80,  connected: false}, // Prawy łuk
+            {x: 175, y: 120, connected: false}  // Powrót do góry
+        ];
 
-            // Animacja dźwigni
-            const lever = document.getElementById('lever');
-            lever.style.transform = "rotateX(180deg)";
-            setTimeout(() => { lever.style.transform = "rotateX(0deg)"; }, 500);
+        let drawing = false;
+        let lastPoint = null;
+        let connections = 0;
 
-            spinReel('reel1', 0);
-            spinReel('reel2', 200);
-            spinReel('reel3', 400);
-        }
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Rysowanie "pyłu gwiezdnego" w tle
+            for(let i=0; i<50; i++) {
+                ctx.fillStyle = "rgba(255,255,255,0.2)";
+                ctx.beginPath();
+                ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, 1, 0, Math.PI*2);
+                ctx.fill();
+            }
 
-        function spinReel(id, delay) {
-            const reel = document.getElementById(id);
-            setTimeout(() => {
-                let count = 0;
-                const interval = setInterval(() => {
-                    reel.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
-                    count++;
-                    if (count > 20) {
-                        clearInterval(interval);
-                        // FINAŁOWY WYNIK - Zawsze serce
-                        reel.innerHTML = '❤️'; 
-                        if (id === 'reel3') endSpin();
-                    }
-                }, 50);
-            }, delay);
-        }
-
-        function endSpin() {
-            // Wybuch konfetti
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#ff4d4d', '#d4af37', '#ffffff']
+            // Rysowanie gwiazd do połączenia
+            points.forEach(p => {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#fcf6ba";
+                ctx.fillStyle = p.connected ? "#fcf6ba" : "rgba(252, 246, 186, 0.4)";
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
             });
+        }
 
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function handleStart(e) {
+            const pos = getMousePos(e);
+            points.forEach(p => {
+                const dist = Math.hypot(p.x - pos.x, p.y - pos.y);
+                if (dist < 20) {
+                    drawing = true;
+                    lastPoint = p;
+                    p.connected = true;
+                }
+            });
+        }
+
+        function handleMove(e) {
+            if (!drawing || !lastPoint) return;
+            const pos = getMousePos(e);
+
+            // Rysowanie tymczasowej linii
+            drawStars();
+            ctx.strokeStyle = "rgba(252, 246, 186, 0.8)";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(lastPoint.x, lastPoint.y);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Sprawdzanie czy trafiliśmy w nową gwiazdę
+            points.forEach(p => {
+                if (!p.connected) {
+                    const dist = Math.hypot(p.x - pos.x, p.y - pos.y);
+                    if (dist < 20) {
+                        // Rysujemy stałą linię między gwiazdami
+                        ctx.strokeStyle = "#fcf6ba";
+                        ctx.beginPath();
+                        ctx.moveTo(lastPoint.x, lastPoint.y);
+                        ctx.lineTo(p.x, p.y);
+                        ctx.stroke();
+                        
+                        p.connected = true;
+                        lastPoint = p;
+                        connections++;
+                        
+                        if (connections >= points.length - 1) {
+                            win();
+                        }
+                    }
+                }
+            });
+        }
+
+        function win() {
+            drawing = false;
+            localStorage.setItem('wygrana5', 'tak');
+            document.getElementById('header').innerText = "Nasza miłość zapisana w gwiazdach...";
+            document.getElementById('hint').style.display = "none";
+            
             setTimeout(() => {
-                document.getElementById('final-letter').classList.add('show');
+                document.getElementById('final-msg').classList.add('show');
             }, 1000);
         }
 
-        function finishAll() {
-            localStorage.setItem('wygrana5', 'tak');
-            window.location.href = 'index.html';
-        }
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', () => drawing = false);
+
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('touchmove', handleMove);
+        window.addEventListener('touchend', () => drawing = false);
+
+        drawStars();
     </script>
 </body>
 </html>
