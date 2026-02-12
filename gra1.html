@@ -2,211 +2,296 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gra 1: Złap Serca</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gra 1: Złap Moje Serce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --gold: #d4af37;
+            --cream: #fdfbf7;
+            --sky: #f9f7f2;
+        }
+
         body {
             margin: 0;
-            padding: 0;
-            background-color: #ffe6e6; /* Jasny róż */
-            font-family: 'Verdana', sans-serif;
-            overflow: hidden; /* Żeby nie było pasków przewijania */
+            background-color: var(--sky);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
+            touch-action: none;
         }
 
-        h2 { color: #d63384; margin-top: 10px; z-index: 10; }
-        
-        #score-board {
-            font-size: 20px;
-            color: #d63384;
-            margin-bottom: 10px;
-            font-weight: bold;
+        /* Nagłówek w stylu Shadow Box */
+        .ui-layer {
+            position: absolute;
+            top: 20px;
+            text-align: center;
             z-index: 10;
+            pointer-events: none;
+            width: 100%;
+        }
+
+        h2 {
+            font-family: 'Dancing Script', cursive;
+            color: var(--gold);
+            font-size: 2.2rem;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .score-bar {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--gold);
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
         canvas {
-            background: #fff0f5;
-            border: 4px solid #d63384;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(214, 51, 132, 0.3);
             display: block;
+            background: radial-gradient(circle at center, #ffffff 0%, #f4f1ea 100%);
         }
 
-        /* Przycisk powrotu */
-        .back-btn {
-            margin-top: 10px;
-            text-decoration: none;
-            color: #d63384;
-            border: 1px solid #d63384;
-            padding: 5px 10px;
-            border-radius: 5px;
-            z-index: 10;
-        }
-
-        /* Instrukcja dla gracza na start */
-        #start-screen {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
+        /* Modal Wygranej */
+        #win-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
             text-align: center;
-            border: 2px solid #d63384;
-            z-index: 20;
         }
-        
-        button {
-            background: #d63384;
+
+        .btn-gold {
+            background: linear-gradient(135deg, #d4af37, #b88a44);
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 18px;
-            border-radius: 5px;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
             cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-    <h2>Złap 10 serc! ❤️</h2>
-    <div id="score-board">Wynik: 0 / 10</div>
-    
+    <div class="ui-layer">
+        <h2>Złap moje uczucia...</h2>
+        <div class="score-bar" id="score-text">Zebrane: 0 / 15</div>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
 
-    <a href="index.html" class="back-btn">Wróć do Muzeum</a>
-
-    <div id="start-screen">
-        <h3>Zasady:</h3>
-        <p>Ruszaj się myszką (lub palcem na telefonie).</p>
-        <p>Złap 10 serduszek!</p>
-        <button onclick="startGame()">START</button>
+    <div id="win-screen">
+        <h1 style="font-family: 'Dancing Script'; font-size: 3rem; color: var(--gold);">Wspaniale!</h1>
+        <p>Każde serce bije dla Ciebie.</p>
+        <a href="index.html" class="btn-gold" onclick="finish()">Odbierz obraz</a>
     </div>
 
     <script>
-        // KONFIGURACJA
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        
-        // Dopasowanie rozmiaru gry do ekranu
-        canvas.width = Math.min(window.innerWidth - 20, 400); // Max 400px szerokości
-        canvas.height = window.innerHeight - 150;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score-text');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
         let score = 0;
-        let gameRunning = false;
-        let player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 50 };
+        let gameActive = true;
+        let particles = [];
         let hearts = [];
-        let speed = 3; // Prędkość spadania
-
-        // --- MIEJSCE NA ZDJĘCIE TWARZY (później) ---
-        // Gdy będziesz miał zdjęcie twarzy (np. twarz.png), 
-        // odkomentuj te 2 linie poniżej i usuń rysowanie kwadratu w funkcji draw()
         
-        // const playerImg = new Image();
-        // playerImg.src = 'twarz.png'; 
+        // --- GRACZ (Twoja Twarz) ---
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            radius: 40,
+            targetX: canvas.width / 2
+        };
 
-        // --------------------------------------------
+        // Obraz twarzy (opcjonalnie)
+        const faceImg = new Image();
+        faceImg.src = 'twarz.png'; // Upewnij się, że masz ten plik
 
-        function startGame() {
-            document.getElementById("start-screen").style.display = "none";
-            gameRunning = true;
-            score = 0;
-            hearts = [];
-            updateGame();
-            spawnHeart();
+        class Heart {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = -50;
+                this.size = Math.random() * 15 + 20;
+                this.speed = Math.random() * 2 + 2;
+                this.angle = Math.random() * Math.PI * 2;
+                this.sway = Math.random() * 2 + 1;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.angle += 0.05;
+                this.x += Math.sin(this.angle) * this.sway;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.fillStyle = "#e63946";
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "rgba(230, 57, 70, 0.5)";
+                
+                // Rysowanie serca
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-this.size/2, -this.size/2, -this.size, this.size/3, 0, this.size);
+                ctx.bezierCurveTo(this.size, this.size/3, this.size/2, -this.size/2, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.alpha = 1;
+                this.color = Math.random() > 0.5 ? "#d4af37" : "#ff4d4d";
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.02;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
         }
 
         function spawnHeart() {
-            if (!gameRunning) return;
-            // Tworzymy serce w losowym miejscu na górze
-            const x = Math.random() * (canvas.width - 30);
-            hearts.push({ x: x, y: -30, size: 30 });
-            
-            // Nowe serce co 1 sekundę (1000ms)
+            if (gameActive && hearts.length < 8) {
+                hearts.push(new Heart());
+            }
             setTimeout(spawnHeart, 800);
         }
 
-        function updateGame() {
-            if (!gameRunning) return;
+        function drawPlayer() {
+            // Złota poświata wokół twarzy
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "rgba(212, 175, 55, 0.4)";
+            
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#d4af37";
+            
+            // Rysowanie okrągłej ramki na twarz
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.clip(); // Przycinamy wszystko wewnątrz okręgu
 
-            // Czyścimy ekran
+            if (faceImg.complete && faceImg.naturalHeight !== 0) {
+                ctx.drawImage(faceImg, player.x - player.radius, player.y - player.radius, player.radius * 2, player.radius * 2);
+            } else {
+                // Jeśli nie ma zdjęcia, rysujemy złoty dysk z sercem
+                ctx.fillStyle = "#d4af37";
+                ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.font = "30px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("❤️", player.x, player.y + 10);
+            }
+            
+            ctx.shadowBlur = 0; // Reset cienia
+        }
+
+        function update() {
+            if (!gameActive) return;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Rysujemy GRACZA (Twoja postać)
-            ctx.fillStyle = "#333"; 
-            // Jak będziesz miał zdjęcie, zamień linię poniżej na: ctx.drawImage(playerImg, player.x, player.y, 50, 50);
-            ctx.fillRect(player.x, player.y, player.width, player.height); 
+            // Interpolacja ruchu gracza dla płynności
+            player.x += (player.targetX - player.x) * 0.15;
 
-            // Rysujemy i przesuwamy SERCA
-            ctx.fillStyle = "red";
-            for (let i = 0; i < hearts.length; i++) {
-                let h = hearts[i];
-                h.y += speed; // Spadanie
+            ctx.save();
+            drawPlayer();
+            ctx.restore();
 
-                // Rysowanie serca (jako kółko na razie, lub emoji)
-                ctx.font = "30px Arial";
-                ctx.fillText("❤️", h.x, h.y);
+            hearts.forEach((heart, index) => {
+                heart.update();
+                heart.draw();
 
-                // Sprawdzenie kolizji (czy złapałeś serce)
-                if (
-                    h.x < player.x + player.width &&
-                    h.x + h.size > player.x &&
-                    h.y < player.y + player.height &&
-                    h.y + h.size > player.y
-                ) {
-                    // ZŁAPANE!
+                // Kolizja
+                const dist = Math.hypot(heart.x - player.x, heart.y - player.y);
+                if (dist < player.radius + heart.size/2) {
                     score++;
-                    document.getElementById("score-board").innerText = "Wynik: " + score + " / 10";
-                    hearts.splice(i, 1); // Usuń serce
-                    i--;
-
-                    // SPRAWDZENIE WYGRANEJ
-                    if (score >= 10) {
-                        endGame();
-                    }
+                    scoreElement.innerText = `Zebrane: ${score} / 15`;
+                    
+                    // Cząsteczki przy złapaniu
+                    for(let i=0; i<10; i++) particles.push(new Particle(heart.x, heart.y));
+                    
+                    hearts.splice(index, 1);
+                    if (score >= 15) winGame();
                 }
 
-                // Jeśli serce spadło za nisko, usuń je
-                if (h.y > canvas.height) {
-                    hearts.splice(i, 1);
-                    i--;
-                }
-            }
+                // Usuwanie serc poza ekranem
+                if (heart.y > canvas.height + 50) hearts.splice(index, 1);
+            });
 
-            requestAnimationFrame(updateGame);
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) particles.splice(index, 1);
+            });
+
+            requestAnimationFrame(update);
         }
 
-        function endGame() {
-            gameRunning = false;
-            // --- ZAPISUJEMY WYGRANĄ DO PAMIĘCI ---
-            localStorage.setItem('wygrana1', 'tak'); // Kluczowe dla muzeum!
-            
-            alert("Brawo Kochanie! Zdobyłaś pierwsze wspomnienie! ❤️");
-            window.location.href = "index.html"; // Powrót do muzeum
+        function winGame() {
+            gameActive = false;
+            localStorage.setItem('wygrana1', 'tak');
+            setTimeout(() => {
+                document.getElementById('win-screen').style.display = 'flex';
+            }, 500);
         }
 
-        // STEROWANIE (Myszka / Dotyk)
-        canvas.addEventListener("mousemove", (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const root = document.documentElement;
-            let mouseX = e.clientX - rect.left - root.scrollLeft;
-            
-            // Centrujemy postać na myszce
-            player.x = mouseX - player.width / 2;
+        function finish() {
+            window.location.href = 'index.html';
+        }
+
+        // Sterowanie
+        window.addEventListener('mousemove', (e) => player.targetX = e.clientX);
+        window.addEventListener('touchmove', (e) => {
+            player.targetX = e.touches[0].clientX;
+            e.preventDefault();
+        }, {passive: false});
+
+        spawnHeart();
+        update();
+
+        // Obsługa zmiany rozmiaru okna
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            player.y = canvas.height - 100;
         });
-
-        canvas.addEventListener("touchmove", (e) => {
-            e.preventDefault(); // Blokuje przesuwanie ekranu palcem
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            let touchX = touch.clientX - rect.left;
-            
-            player.x = touchX - player.width / 2;
-        }, { passive: false });
-
     </script>
 </body>
 </html>
