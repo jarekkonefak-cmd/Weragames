@@ -3,325 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nasza Galeria</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
-    
+    <title>Nasze Pudełko Wspomnień</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
-        /* --- RESET I BAZA --- */
-        * { box-sizing: border-box; }
+        /* --- BAZA I TŁO (Styl Pudełka) --- */
         body {
             margin: 0;
             padding: 0;
-            background-color: #111;
+            background-color: #fdfbf7; /* Kremowe tło */
             font-family: 'Playfair Display', serif;
-            /* Na telefonie pozwalamy scrollować, na PC blokujemy */
-            overflow-x: hidden; 
-            overflow-y: auto; 
-        }
-
-        /* --- KONTENER POKOJU 3D --- */
-        .room-container {
-            width: 100%;
             min-height: 100vh;
-            position: relative;
-            perspective: 1000px; /* Głębia 3D */
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* --- POKÓJ --- */
-        .room {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            /* Patrzymy lekko z góry */
-            transform: rotateX(2deg); 
-        }
-
-        /* --- ŚCIANA (Tło) --- */
-        .wall {
-            position: absolute;
-            width: 120%; /* Szersza żeby nie było widać boków */
-            min-height: 100vh; /* Rozciąga się na wysokość */
-            left: -10%;
-            top: 0;
-            /* Niebieski gradient jak na zdjęciu */
-            background: linear-gradient(to bottom, #6b8cba, #8fb2d1 50%, #a8c4e0);
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 100px; /* Miejsce na dole */
-            transform: translateZ(-100px); /* Odsunięcie w głąb */
-            z-index: 1; /* Podłoga będzie pod tym */
+            overflow-x: hidden;
         }
 
-        /* Listwa przysufitowa */
-        .molding-top {
-            width: 100%;
-            height: 25px;
-            background: linear-gradient(to bottom, #fff, #ddd);
-            border-bottom: 4px solid #888;
-            margin-bottom: 20px;
-        }
-
-        /* --- PODŁOGA --- */
-        /* Na telefonach podłoga jest mniej ważna, robimy ją jako tło na dole */
-        .floor {
-            position: fixed; /* Przyklejona do dołu */
-            bottom: 0;
-            left: -10%;
-            width: 120%;
-            height: 30vh;
-            background-color: #c2a370;
-            /* Wzór parkietu */
-            background-image: 
-                repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 40px),
-                repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 40px);
-            transform: rotateX(60deg) translateY(50px);
-            z-index: 0; /* Za ścianą */
-            opacity: 0.8;
-            pointer-events: none; /* Żeby nie zasłaniała kliknięć */
-        }
-
-        /* --- TYTUŁ --- */
-        h1 {
-            font-family: 'Cinzel Decorative', cursive;
-            color: #fceeb5; /* Jasne złoto */
-            font-size: 2.2rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-            margin: 10px 0 30px 0;
-            text-align: center;
-            z-index: 10;
-        }
-
-        /* --- GALERIA (Grid) --- */
-        .gallery-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center; /* Centrowanie w pionie */
-            gap: 40px;
-            max-width: 1200px;
-            padding: 20px;
-            z-index: 20; /* Najważniejsze - nad podłogą */
+        /* Imitacja wnętrza pudełka (Shadow Box) */
+        .shadow-box-container {
+            width: 90%;
+            max-width: 600px; /* Szerokość na telefonie */
+            background: #fff;
+            margin: 20px auto;
+            padding: 30px 20px;
+            box-shadow: 
+                inset 0 0 50px rgba(0,0,0,0.1), /* Cień wewnątrz */
+                0 0 20px rgba(0,0,0,0.1); /* Cień na zewnątrz */
+            border: 15px solid white; /* Gruba biała rama pudełka */
+            border-radius: 5px;
             position: relative;
         }
 
-        /* --- POJEDYNCZE MIEJSCE (SPOT) --- */
+        /* Oświetlenie LED (jak na zdjęciu) */
+        .shadow-box-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 150px;
+            background: radial-gradient(circle at top, rgba(255, 255, 200, 0.4), transparent 70%);
+            pointer-events: none;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            color: #d4af37; /* Złoty tekst */
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* --- UKŁAD GALERII (Pionowy scroll) --- */
+        .gallery-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px; /* Odstępy między ramkami */
+            width: 100%;
+        }
+
+        /* --- MIEJSCE NA ZDJĘCIE (Spot) --- */
         .spot {
             position: relative;
             cursor: pointer;
             transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* To naprawia klikanie: */
-            pointer-events: auto; 
-            z-index: 50; 
+            /* KLUCZOWE DLA KLIKANIA NA TELEFONIE: */
+            z-index: 10; 
+            touch-action: manipulation;
         }
 
         .spot:active {
-            transform: scale(0.95); /* Efekt wciśnięcia */
+            transform: scale(0.95);
         }
 
-        /* KSZTAŁTY OBRAZÓW */
-        .shape-portrait { width: 140px; height: 190px; }
-        .shape-landscape { width: 190px; height: 140px; }
-        .shape-square { width: 160px; height: 160px; }
-        .shape-oval { width: 150px; height: 180px; border-radius: 50%; }
+        /* KSZTAŁTY */
+        .shape-portrait { width: 160px; height: 220px; }
+        .shape-landscape { width: 220px; height: 160px; }
+        .shape-square { width: 180px; height: 180px; }
+        .shape-oval { width: 170px; height: 210px; border-radius: 50%; }
 
-        /* --- STAN 1: PUSTE MIEJSCE (LINIA + GWÓŹDŹ) --- */
-        .outline-placeholder {
+        /* --- STAN 1: NIEODBLOKOWANE (Przerywana linia) --- */
+        .dashed-box {
             width: 100%;
             height: 100%;
-            border: 2px dashed rgba(255, 255, 255, 0.5);
-            border-radius: 4px;
-            position: relative;
+            border: 2px dashed #ccc; /* Szara przerywana linia */
+            border-radius: 5px;
             display: flex;
+            align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.05); /* Bardzo delikatne tło żeby łatwiej trafić palcem */
-        }
-        
-        .shape-oval .outline-placeholder { border-radius: 50%; }
-
-        /* Gwóźdź */
-        .nail {
-            width: 10px;
-            height: 10px;
-            background: #444;
-            border-radius: 50%;
-            box-shadow: 1px 2px 3px rgba(0,0,0,0.5);
-            position: absolute;
-            top: 15px;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.02);
+            color: #888;
+            font-size: 0.9rem;
+            font-style: italic;
         }
 
-        /* --- STAN 2: RAMA (PO WYGRANEJ) --- */
-        .gold-frame {
+        .shape-oval .dashed-box { border-radius: 50%; }
+
+        /* --- STAN 2: ODBLOKOWANE (Złota Rama) --- */
+        .ornate-frame {
             width: 100%;
             height: 100%;
             display: none; /* Domyślnie ukryte */
+            /* Stylizacja złotej ramy - bogatsza */
+            border: 8px solid #d4af37;
+            border-radius: 3px;
+            box-shadow: 
+                0 5px 15px rgba(0,0,0,0.3), /* Cień rzucany przez ramkę */
+                inset 0 0 10px rgba(0,0,0,0.5); /* Cień wewnątrz ramki */
             background: #000;
-            border: 10px solid #eebb55;
-            /* Efekt 3D ramy */
-            border-image: linear-gradient(45deg, #b88a44, #eebb55, #8a6e34, #fff) 1;
-            box-shadow: 5px 10px 15px rgba(0,0,0,0.5);
             overflow: hidden;
+            position: relative;
+            /* Imitacja złotej faktury */
+            background-image: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            padding: 5px; /* Passe-partout (wewnętrzna ramka) */
+            box-sizing: border-box;
         }
 
-        .shape-oval .gold-frame {
+        .shape-oval .ornate-frame {
             border-radius: 50%;
-            border: 8px solid #eebb55;
-            border-image: none;
+            padding: 6px;
         }
 
-        .gold-frame img {
+        /* Obrazek w środku */
+        .photo-content {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
+            background: white;
+            border-radius: 1px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
 
-        /* --- PODPISY (Tabliczki) --- */
-        .plaque {
-            margin-top: 12px;
-            background: linear-gradient(to bottom, #333, #111);
-            color: #eebb55;
-            padding: 5px 15px;
-            border: 1px solid #777;
-            border-radius: 3px;
-            font-size: 0.85rem;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            font-family: sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .shape-oval .photo-content { border-radius: 50%; }
+
+        /* --- PRZYCISK PDF (Na dole) --- */
+        #pdf-btn {
+            margin-top: 50px;
+            padding: 15px 30px;
+            background: #d4af37;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-family: 'Playfair Display', serif;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            display: none; /* Ukryty dopóki nie wygrasz wszystkiego */
+            animation: pulse 2s infinite;
         }
 
-        /* --- RESPONSYWNOŚĆ (TELEFON) --- */
-        @media (max-width: 700px) {
-            h1 { font-size: 1.8rem; margin-bottom: 20px; }
-            
-            .gallery-grid {
-                flex-direction: column; /* Układ pionowy na telefonie */
-                gap: 50px; /* Duże odstępy żeby wypełnić ekran */
-                padding-bottom: 150px; /* Miejsce na dole scrolla */
-            }
-
-            /* Powiększamy obrazy na telefonie o 30% */
-            .spot {
-                transform: scale(1.3); 
-                margin: 10px 0;
-            }
-            .spot:active { transform: scale(1.25); }
-
-            /* Układ naprzemienny (Zig-Zag) dla lepszego wyglądu */
-            .spot:nth-child(even) { transform: scale(1.3) rotate(2deg); }
-            .spot:nth-child(odd) { transform: scale(1.3) rotate(-2deg); }
-            
-            .room-container {
-                overflow-y: scroll; /* Włączamy przewijanie na telefonie */
-            }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        /* Przycisk resetu */
+        /* RESET (Mały na dole) */
         #reset-btn {
             position: fixed;
             bottom: 10px;
             right: 10px;
-            opacity: 0.3;
+            opacity: 0.2;
             font-size: 10px;
-            z-index: 1000;
+            background: none;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
 
-    <div class="room-container">
-        <div class="room">
-            <div class="wall">
-                <div class="molding-top"></div>
-                <h1>Nasza Kolekcja Wspomnień</h1>
+    <div class="shadow-box-container">
+        <h1>Nasza Historia ❤️</h1>
 
-                <div class="gallery-grid">
+        <div class="gallery-column" id="gallery">
 
-                    <div class="spot shape-portrait" onclick="idzDoGry(1)">
-                        <div class="outline-placeholder" id="outline-1"><div class="nail"></div></div>
-                        <div class="gold-frame" id="frame-1"><img src="fotka1.jpg"></div>
-                        <div class="plaque" id="plaque-1">Gra 1<br><small style="color:#fff; text-transform:none;">Serca</small></div>
-                    </div>
-
-                    <div class="spot shape-landscape" onclick="idzDoGry(2)">
-                        <div class="outline-placeholder" id="outline-2"><div class="nail"></div></div>
-                        <div class="gold-frame" id="frame-2"><img src="fotka2.jpg"></div>
-                        <div class="plaque" id="plaque-2">Gra 2<br><small style="color:#fff; text-transform:none;">Pary</small></div>
-                    </div>
-
-                    <div class="spot shape-square" onclick="idzDoGry(3)">
-                        <div class="outline-placeholder" id="outline-3"><div class="nail"></div></div>
-                        <div class="gold-frame" id="frame-3"><img src="fotka3.jpg"></div>
-                        <div class="plaque" id="plaque-3">Gra 3<br><small style="color:#fff; text-transform:none;">Quiz</small></div>
-                    </div>
-
-                    <div class="spot shape-oval" onclick="idzDoGry(4)">
-                        <div class="outline-placeholder" id="outline-4"><div class="nail"></div></div>
-                        <div class="gold-frame" id="frame-4"><img src="fotka4.jpg"></div>
-                        <div class="plaque" id="plaque-4">Gra 4<br><small style="color:#fff; text-transform:none;">Puzzle</small></div>
-                    </div>
-
-                    <div class="spot shape-landscape" onclick="idzDoGry(5)">
-                        <div class="outline-placeholder" id="outline-5"><div class="nail"></div></div>
-                        <div class="gold-frame" id="frame-5"><img src="fotka5.jpg"></div>
-                        <div class="plaque" id="plaque-5">Gra 5<br><small style="color:#fff; text-transform:none;">Sekret</small></div>
-                    </div>
-
+            <div class="spot shape-portrait" onclick="idzDoGry(1)">
+                <div class="dashed-box" id="dash-1">
+                    Odblokuj pierwszy obraz
+                </div>
+                <div class="ornate-frame" id="frame-1">
+                    <img src="fotka1.jpg" class="photo-content" id="img-1">
                 </div>
             </div>
-            
-            <div class="floor"></div>
+
+            <div class="spot shape-landscape" onclick="idzDoGry(2)">
+                <div class="dashed-box" id="dash-2">
+                    Odblokuj drugi obraz
+                </div>
+                <div class="ornate-frame" id="frame-2">
+                    <img src="fotka2.jpg" class="photo-content" id="img-2">
+                </div>
+            </div>
+
+            <div class="spot shape-square" onclick="idzDoGry(3)">
+                <div class="dashed-box" id="dash-3">
+                    Odblokuj trzeci obraz
+                </div>
+                <div class="ornate-frame" id="frame-3">
+                    <img src="fotka3.jpg" class="photo-content" id="img-3">
+                </div>
+            </div>
+
+            <div class="spot shape-oval" onclick="idzDoGry(4)">
+                <div class="dashed-box" id="dash-4">
+                    Odblokuj czwarty obraz
+                </div>
+                <div class="ornate-frame" id="frame-4">
+                    <img src="fotka4.jpg" class="photo-content" id="img-4">
+                </div>
+            </div>
+
+            <div class="spot shape-landscape" onclick="idzDoGry(5)">
+                <div class="dashed-box" id="dash-5">
+                    Odblokuj piąty obraz
+                </div>
+                <div class="ornate-frame" id="frame-5">
+                    <img src="fotka5.jpg" class="photo-content" id="img-5">
+                </div>
+            </div>
+
         </div>
+
+        <div style="text-align: center;">
+            <button id="pdf-btn" onclick="generujPDF()">🎁 Pobierz Wspomnienia (PDF)</button>
+        </div>
+
     </div>
 
     <button id="reset-btn" onclick="resetuj()">RESET</button>
 
     <script>
         // --- LOGIKA ---
+        
+        // Sprawdzanie stanu gier przy uruchomieniu
         document.addEventListener("DOMContentLoaded", () => {
+            let wygraneLicznik = 0;
+
             for (let i = 1; i <= 5; i++) {
                 if (localStorage.getItem('wygrana' + i) === 'tak') {
                     pokazObraz(i);
+                    wygraneLicznik++;
                 }
+            }
+
+            // Jeśli wszystkie 5 gier wygranych, pokaż przycisk PDF
+            if (wygraneLicznik === 5) {
+                document.getElementById('pdf-btn').style.display = 'inline-block';
             }
         });
 
         function pokazObraz(nr) {
-            // Ukryj obrys i podpis
-            document.getElementById('outline-' + nr).style.display = 'none';
-            document.getElementById('plaque-' + nr).style.display = 'none';
+            // Ukryj przerywaną linię
+            const dash = document.getElementById('dash-' + nr);
+            if(dash) dash.style.display = 'none';
             
             // Pokaż ramę
             const frame = document.getElementById('frame-' + nr);
-            frame.style.display = 'block';
+            if(frame) frame.style.display = 'block';
             
-            // Zablokuj klikanie (zmień funkcję rodzica)
+            // Zablokuj klikanie (żeby nie wchodzić do gry po wygranej)
             const parent = frame.parentElement;
-            parent.onclick = () => alert("To piękne wspomnienie jest już Twoje! ❤️");
+            parent.onclick = () => {
+                // Tu możemy dodać np. powiększanie zdjęcia w przyszłości
+                console.log("Obraz już odblokowany");
+            };
+            parent.style.cursor = 'default';
         }
 
         function idzDoGry(nr) {
-            console.log("Kliknięto grę nr: " + nr); // Diagnostyka w konsoli
-            // Jeśli gra nie wygrana, idziemy do niej
+            // Sprawdź czy gra nie jest już wygrana
             if (localStorage.getItem('wygrana' + nr) !== 'tak') {
+                console.log("Przechodzę do gry numer: " + nr);
                 window.location.href = 'gra' + nr + '.html';
             }
         }
 
         function resetuj() {
-            if(confirm("Zresetować wszystko?")) {
+            if(confirm("Czy na pewno chcesz zresetować cały postęp?")) {
                 localStorage.clear();
                 location.reload();
             }
+        }
+
+        // --- GENEROWANIE PDF ---
+        async function generujPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFont("times", "italic");
+            doc.setFontSize(24);
+            doc.text("Nasza Kolekcja Wspomnień", 105, 20, null, null, "center");
+            
+            doc.setFontSize(12);
+            doc.text("Dla mojej Walentynki ❤️", 105, 30, null, null, "center");
+
+            let yPos = 50;
+
+            // Pobieramy obrazy i dodajemy do PDF
+            for (let i = 1; i <= 5; i++) {
+                const imgElement = document.getElementById('img-' + i);
+                
+                // Sprawdzamy, czy zdjęcie się załadowało (czy nie jest puste)
+                if (imgElement.complete && imgElement.naturalHeight !== 0) {
+                    try {
+                        // Dodajemy obraz do PDF
+                        // Parametry: data obrazu, typ, x, y, szerokość, wysokość
+                        doc.addImage(imgElement, "JPEG", 55, yPos, 100, 75); // Ustawiamy stały rozmiar w PDF
+                        yPos += 85; // Przesuwamy w dół dla kolejnego zdjęcia
+
+                        // Jeśli brakuje miejsca na stronie, dodaj nową
+                        if (yPos > 250 && i < 5) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                    } catch (e) {
+                        console.error("Błąd dodawania zdjęcia do PDF", e);
+                    }
+                } else {
+                    doc.text(`[Miejsce na zdjęcie nr ${i}]`, 105, yPos + 40, null, null, "center");
+                    yPos += 85;
+                }
+            }
+
+            doc.save("Nasze_Wspomnienia.pdf");
         }
     </script>
 </body>
