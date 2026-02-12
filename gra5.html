@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gra 5: Nasze Gwiazdy</title>
+    <title>Gra 5: Nasza Konstelacja</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -23,24 +23,25 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
-            touch-action: none;
+            touch-action: none; /* Blokada scrolla dla mobilnych */
         }
 
         h2 {
             font-family: 'Dancing Script', cursive;
             color: var(--star-color);
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 0 20px 20px;
             pointer-events: none;
             text-shadow: 0 0 15px rgba(252, 246, 186, 0.5);
         }
 
         #canvas-container {
             position: relative;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
             border-radius: 20px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: rgba(0,0,0,0.3);
         }
 
         canvas {
@@ -50,42 +51,44 @@
         }
 
         .hint {
-            margin-top: 20px;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.8rem;
+            margin-top: 15px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.7rem;
             letter-spacing: 2px;
             text-transform: uppercase;
         }
 
-        /* --- FINALNY KOMUNIKAT --- */
+        /* FINALNY KOMUNIKAT */
         #final-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.96);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 1000;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             box-sizing: border-box;
             color: #333;
         }
 
-        #final-overlay.show { display: flex; animation: fadeIn 1s; }
+        #final-overlay.show { display: flex; animation: fadeIn 0.8s forwards; }
 
         .btn-end {
-            background: var(--gold);
+            background: linear-gradient(135deg, #d4af37, #b88a44);
             color: white;
             border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
+            padding: 16px 45px;
+            border-radius: 35px;
             font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 30px;
+            margin-top: 25px;
             box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
             text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -93,18 +96,18 @@
 </head>
 <body>
 
-    <h2>Zapisz naszą historię w gwiazdach...</h2>
+    <h2>Połącz wszystkie gwiazdy...</h2>
 
     <div id="canvas-container">
         <canvas id="skyCanvas"></canvas>
     </div>
 
-    <p class="hint">Połącz pulsujące punkty w jedną całość</p>
+    <p class="hint">Musisz odwiedzić każdy punkt, by ukończyć serce</p>
 
     <div id="final-overlay">
-        <h3 style="font-family: 'Dancing Script'; font-size: 3rem; color: var(--gold); margin: 0;">Zawsze Ty ❤️</h3>
-        <p style="max-width: 300px; line-height: 1.6;">Każda gwiazda na niebie przypomina mi o Tobie. Ostatnie wspomnienie czeka w galerii.</p>
-        <a href="index.html" class="btn-end" onclick="finish()">Odbierz obraz</a>
+        <h3 style="font-family: 'Dancing Script'; font-size: 2.8rem; color: var(--gold); margin: 0;">Nasze Niebo ❤️</h3>
+        <p style="max-width: 280px; line-height: 1.6; font-size: 0.95rem;">Każdy punkt to chwila, którą z Tobą dzielę. Wszystkie wspomnienia są już Twoje.</p>
+        <a href="index.html" class="btn-end" onclick="finish()">Wróć do Galerii</a>
     </div>
 
     <script>
@@ -112,31 +115,38 @@
         const ctx = canvas.getContext('2d');
         
         canvas.width = Math.min(window.innerWidth - 40, 360);
-        canvas.height = 480;
+        canvas.height = 460;
 
+        // UKŁAD 12 GWIAZD (Bardziej precyzyjne serce)
         let stars = [
-            {x: 180, y: 130, r: 5, active: false, target: 0}, // Góra środek
-            {x: 100, y: 100, r: 5, active: false, target: 1}, // Lewy łuk
-            {x: 50,  y: 180, r: 5, active: false, target: 2}, // Lewy bok
-            {x: 180, y: 400, r: 5, active: false, target: 3}, // Dół
-            {x: 310, y: 180, r: 5, active: false, target: 4}, // Prawy bok
-            {x: 260, y: 100, r: 5, active: false, target: 5}  // Prawy łuk
+            {x: 180, y: 130, id: 0}, // Top notch
+            {x: 130, y: 95,  id: 1}, // Left upper curve
+            {x: 75,  y: 110, id: 2}, // Left outer top
+            {x: 45,  y: 180, id: 3}, // Left widest point
+            {x: 70,  y: 270, id: 4}, // Left middle slope
+            {x: 120, y: 350, id: 5}, // Left bottom slope
+            {x: 180, y: 410, id: 6}, // BOTTOM TIP
+            {x: 240, y: 350, id: 7}, // Right bottom slope
+            {x: 290, y: 270, id: 8}, // Right middle slope
+            {x: 315, y: 180, id: 9}, // Right widest point
+            {x: 285, y: 110, id: 10},// Right outer top
+            {x: 230, y: 95,  id: 11} // Right upper curve
         ];
 
-        let particles = [];
         let connections = [];
+        let particles = [];
         let isDrawing = false;
         let lastStar = null;
         let pulse = 0;
 
-        function createParticle(x, y) {
-            for(let i=0; i<2; i++) {
+        function createSparkle(x, y) {
+            for(let i=0; i<3; i++) {
                 particles.push({
                     x, y,
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    life: 1,
-                    size: Math.random() * 2
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: (Math.random() - 0.5) * 1.5,
+                    life: 1.0,
+                    size: Math.random() * 2 + 0.5
                 });
             }
         }
@@ -145,33 +155,26 @@
             ctx.fillStyle = '#050510';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            pulse += 0.05;
-            const sPulse = Math.sin(pulse) * 3;
-
-            // Tło - pył gwiezdny
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            for(let i=0; i<30; i++) {
-                ctx.beginPath();
-                ctx.arc((i * 137) % canvas.width, (i * 243) % canvas.height, 0.8, 0, Math.PI*2);
-                ctx.fill();
-            }
+            pulse += 0.04;
+            const glow = Math.sin(pulse) * 4;
 
             // Rysowanie połączeń
-            ctx.lineWidth = 2;
-            connections.forEach(conn => {
-                ctx.strokeStyle = `rgba(252, 246, 186, 0.8)`;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = '#fcf6ba';
+            ctx.lineWidth = 2.5;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#fcf6ba';
+            ctx.strokeStyle = '#fcf6ba';
+            
+            connections.forEach(c => {
                 ctx.beginPath();
-                ctx.moveTo(conn.from.x, conn.from.y);
-                ctx.lineTo(conn.to.x, conn.to.y);
+                ctx.moveTo(c.from.x, c.from.y);
+                ctx.lineTo(c.to.x, c.to.y);
                 ctx.stroke();
             });
 
-            // Iskry za palcem
+            // Iskry palca
             particles.forEach((p, i) => {
                 p.x += p.vx; p.y += p.vy;
-                p.life -= 0.02;
+                p.life -= 0.015;
                 if(p.life <= 0) particles.splice(i, 1);
                 ctx.fillStyle = `rgba(252, 246, 186, ${p.life})`;
                 ctx.beginPath();
@@ -181,11 +184,11 @@
 
             // Rysowanie gwiazd
             stars.forEach(s => {
-                ctx.shadowBlur = s.active ? 20 + sPulse : 10;
-                ctx.shadowColor = '#fcf6ba';
-                ctx.fillStyle = s.active ? '#fcf6ba' : 'rgba(252, 246, 186, 0.3)';
+                const isActive = s.connected || s === lastStar;
+                ctx.shadowBlur = isActive ? 15 + glow : 5;
+                ctx.fillStyle = isActive ? '#fcf6ba' : 'rgba(252, 246, 186, 0.2)';
                 ctx.beginPath();
-                ctx.arc(s.x, s.y, s.active ? 6 : 4, 0, Math.PI*2);
+                ctx.arc(s.x, s.y, isActive ? 5 : 3.5, 0, Math.PI*2);
                 ctx.fill();
             });
 
@@ -194,27 +197,32 @@
 
         function handleInput(e) {
             const rect = canvas.getBoundingClientRect();
-            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
 
-            if (isDrawing) createParticle(x, y);
+            if (isDrawing) createSparkle(x, y);
 
             stars.forEach(s => {
                 const dist = Math.hypot(s.x - x, s.y - y);
-                if (dist < 25) {
+                // Czułość trafienia gwiazdy: 22px
+                if (dist < 22) {
                     if (!lastStar) {
-                        s.active = true;
                         lastStar = s;
-                        isDrawing = true;
+                        s.connected = true;
                     } else if (s !== lastStar) {
-                        // Sprawdzanie czy już jest takie połączenie
+                        // Sprawdzamy czy połączenie już istnieje (blokada cofania)
                         const exists = connections.some(c => (c.from === lastStar && c.to === s) || (c.from === s && c.to === lastStar));
+                        
                         if (!exists) {
                             connections.push({from: lastStar, to: s});
-                            s.active = true;
+                            s.connected = true;
                             lastStar = s;
-                            if (connections.length === stars.length) {
-                                // Dodajemy ostatnie połączenie do zamknięcia serca
+
+                            // Warunek wygranej: Wszystkie 12 gwiazd połączone (11 linii + 1 domykająca)
+                            if (connections.length === stars.length - 1) {
+                                // Automatyczne domknięcie serca do pierwszej gwiazdy
                                 connections.push({from: stars[stars.length-1], to: stars[0]});
                                 win();
                             }
@@ -228,7 +236,7 @@
             isDrawing = false;
             setTimeout(() => {
                 document.getElementById('final-overlay').classList.add('show');
-            }, 800);
+            }, 700);
         }
 
         function finish() {
