@@ -2,281 +2,407 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nasze Pudełko Wspomnień</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gra 3: Flappy Heart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --wood-frame: #ffffff;
-            --bg-paper: #f9f7f2;
-            --gold-main: #d4af37;
-            --gold-light: #fcf6ba;
-            --text-dark: #422a2a;
-        }
-
         body {
             margin: 0;
             padding: 0;
-            background-color: #e0dcd5; /* Tło za pudełkiem */
+            background: #fdfbf7;
             font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            touch-action: none; /* Blokada przewijania na telefonie */
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
         }
 
-        /* --- GŁÓWNE PUDEŁKO (SHADOW BOX) --- */
-        .shadow-box {
-            width: 92%;
-            max-width: 500px;
-            background: var(--bg-paper);
-            margin: 30px auto;
-            padding: 40px 20px;
-            border: 15px solid var(--wood-frame);
+        #game-container {
             position: relative;
-            /* Potężny efekt głębi */
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.2), 
-                inset 0 0 60px rgba(0,0,0,0.05);
-            border-radius: 2px;
+            width: 100%;
+            height: 100%;
+            max-width: 480px; /* Ograniczenie szerokości na dużych ekranach */
+            background: linear-gradient(to bottom, #dbebf7, #fdfbf7);
+            border-left: 2px solid #ddd;
+            border-right: 2px solid #ddd;
+            overflow: hidden;
         }
 
-        /* Dekoracyjne światełko u góry */
-        .spotlight {
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI */
+        .ui-layer {
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 200px;
-            background: radial-gradient(circle at 50% -10%, rgba(255, 255, 220, 0.5), transparent 70%);
-            pointer-events: none;
-        }
-
-        header {
+            top: 20px;
+            width: 100%;
             text-align: center;
-            margin-bottom: 50px;
+            pointer-events: none;
+            z-index: 10;
         }
 
-        h1 {
+        h2 {
             font-family: 'Dancing Script', cursive;
-            color: var(--text-dark);
-            font-size: 2.8rem;
+            color: #d4af37;
+            font-size: 2.5rem;
             margin: 0;
-            letter-spacing: 1px;
+            text-shadow: 1px 1px 0px white;
         }
 
-        .subtitle {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: #999;
+        .score-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 0 #d4af37;
             margin-top: 10px;
         }
 
-        /* --- GALERIA PIONOWA --- */
-        .gallery {
+        /* Ekrany (Start / Game Over / Win) */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 50px;
-        }
-
-        .spot {
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .spot:hover { transform: scale(1.03); }
-
-        /* Kształty */
-        .pion { width: 170px; height: 230px; }
-        .poziom { width: 230px; height: 170px; }
-        .kwadrat { width: 190px; height: 190px; }
-        .owal { width: 180px; height: 220px; border-radius: 50%; }
-
-        /* Gwóźdź */
-        .nail {
-            width: 8px; height: 8px;
-            background: #444;
-            border-radius: 50%;
-            position: absolute;
-            top: -20px; left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            z-index: 5;
-        }
-
-        /* Linia przerywana */
-        .placeholder {
-            width: 100%; height: 100%;
-            border: 1px dashed #bbb;
-            display: flex;
-            align-items: center;
             justify-content: center;
+            z-index: 20;
             text-align: center;
-            color: #aaa;
-            font-size: 0.75rem;
-            font-style: italic;
             padding: 20px;
             box-sizing: border-box;
-            background: rgba(0,0,0,0.01);
-        }
-        .owal .placeholder { border-radius: 50%; }
-
-        /* --- ZŁOTA RAMA (FINALNA) --- */
-        .frame {
-            width: 100%; height: 100%;
-            display: none;
-            position: relative;
-            background: white;
-            padding: 6px;
-            box-sizing: border-box;
-            border: 2px solid #b88a44;
-            /* Złożony efekt ramy */
-            box-shadow: 
-                0 10px 20px rgba(0,0,0,0.15),
-                inset 0 0 0 4px var(--gold-main),
-                inset 0 0 0 5px var(--gold-light);
-            animation: hang 1.2s ease-out;
-        }
-        .owal .frame { border-radius: 50%; padding: 8px; }
-
-        @keyframes hang {
-            0% { transform: translateY(-20px) rotate(3deg); opacity: 0; }
-            50% { transform: translateY(0) rotate(-2deg); }
-            100% { transform: translateY(0) rotate(0); opacity: 1; }
         }
 
-        .photo {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .owal .photo { border-radius: 50%; }
+        .hidden { display: none !important; }
 
-        /* --- PRZYCISK PDF --- */
-        #pdf-container {
-            text-align: center;
-            margin-top: 60px;
-            display: none;
-        }
-
-        .btn-pdf {
-            background: linear-gradient(135deg, #d4af37, #b88a44);
+        .btn {
+            background: #d4af37;
             color: white;
+            padding: 15px 40px;
             border: none;
-            padding: 18px 35px;
             border-radius: 50px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 500;
+            font-size: 1.2rem;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
-            transition: 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            transition: transform 0.1s;
         }
 
-        .btn-pdf:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(212, 175, 55, 0.5);
+        .btn:active { transform: scale(0.95); }
+
+        .tutorial {
+            margin-top: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            animation: bounce 1s infinite alternate;
         }
 
-        #reset-btn {
-            background: none; border: none; color: #ccc;
-            margin: 40px 0; cursor: pointer; font-size: 10px;
-        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+
     </style>
 </head>
 <body>
 
-    <div class="shadow-box">
-        <div class="spotlight"></div>
-        
-        <header>
-            <h1>Nasza Historia</h1>
-            <div class="subtitle">Kolekcja Wspomnień</div>
-        </header>
-
-        <div class="gallery">
-            <div class="spot pion" onclick="gra(1)">
-                <div class="nail"></div>
-                <div class="placeholder" id="p1">Otwórz pierwsze okno</div>
-                <div class="frame" id="f1"><img src="fotka1.jpg" class="photo" id="img1"></div>
-            </div>
-
-            <div class="spot poziom" onclick="gra(2)">
-                <div class="nail"></div>
-                <div class="placeholder" id="p2">Odkryj drugą chwilę</div>
-                <div class="frame" id="f2"><img src="fotka2.jpg" class="photo" id="img2"></div>
-            </div>
-
-            <div class="spot kwadrat" onclick="gra(3)">
-                <div class="nail"></div>
-                <div class="placeholder" id="p3">Zajrzyj tutaj</div>
-                <div class="frame" id="f3"><img src="fotka3.jpg" class="photo" id="img3"></div>
-            </div>
-
-            <div class="spot owal" onclick="gra(4)">
-                <div class="nail"></div>
-                <div class="placeholder" id="p4">Czwarta tajemnica</div>
-                <div class="frame" id="f4"><img src="fotka4.jpg" class="photo" id="img4"></div>
-            </div>
-
-            <div class="spot poziom" onclick="gra(5)">
-                <div class="nail"></div>
-                <div class="placeholder" id="p5">Wielki finał</div>
-                <div class="frame" id="f5"><img src="fotka5.jpg" class="photo" id="img5"></div>
-            </div>
+    <div id="game-container">
+        <div class="ui-layer">
+            <h2 id="level-title">Leć do mnie!</h2>
+            <div class="score-display" id="score">0</div>
         </div>
 
-        <div id="pdf-container">
-            <button class="btn-pdf" onclick="generatePDF()">Zapisz nasze wspomnienia (PDF)</button>
+        <canvas id="canvas"></canvas>
+
+        <div id="start-screen" class="screen">
+            <h1 style="color: #d4af37; font-family: 'Dancing Script'; font-size: 3rem;">Flappy Heart</h1>
+            <p style="color: #555;">Omiń 10 złotych kolumn, aby wygrać.</p>
+            <div class="tutorial">👆 Tapnij, aby lecieć</div>
+            <button class="btn" onclick="startGame()">START</button>
+        </div>
+
+        <div id="fail-screen" class="screen hidden">
+            <h1 style="color: #ff4d4d; font-family: 'Dancing Script'; font-size: 3rem;">Ups! 💔</h1>
+            <p style="color: #555;">Serduszko uderzyło. Spróbuj jeszcze raz!</p>
+            <button class="btn" style="background: #ff4d4d;" onclick="resetGame()">Ponów próbę</button>
+        </div>
+
+        <div id="win-screen" class="screen hidden">
+            <h1 style="color: #d4af37; font-family: 'Dancing Script'; font-size: 3.5rem;">Udało się!</h1>
+            <p style="color: #555;">Doleciałaś bezpiecznie do celu.</p>
+            <a href="index.html" class="btn" onclick="finish()">Odbierz obraz</a>
         </div>
     </div>
 
-    <button id="reset-btn" onclick="reset()">Resetuj postęp</button>
-
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            let winCount = 0;
-            for (let i = 1; i <= 5; i++) {
-                if (localStorage.getItem('wygrana' + i) === 'tak') {
-                    unlock(i);
-                    winCount++;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Elementy DOM
+        const scoreEl = document.getElementById('score');
+        const startScreen = document.getElementById('start-screen');
+        const failScreen = document.getElementById('fail-screen');
+        const winScreen = document.getElementById('win-screen');
+
+        // Ustawienia gry
+        let frames = 0;
+        let score = 0;
+        let gameSpeed = 3; // Prędkość przesuwania
+        let isRunning = false;
+        const TARGET_SCORE = 10; // Ile punktów do wygranej
+
+        // Twarz (opcjonalnie)
+        const faceImg = new Image();
+        faceImg.src = 'twarz.png';
+
+        // Skalowanie Canvas
+        function resize() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- OBIEKT: GRACZ (SERCE) ---
+        const bird = {
+            x: 50,
+            y: 150,
+            w: 34,
+            h: 28,
+            radius: 14,
+            velocity: 0,
+            gravity: 0.25,
+            jump: -5.5, // Siła skoku
+            rotation: 0,
+
+            draw: function() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                // Obrót w zależności od prędkości
+                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
+                ctx.rotate(this.rotation);
+
+                // Cień
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "rgba(230, 0, 0, 0.3)";
+
+                // Rysowanie serca
+                ctx.fillStyle = '#e63946';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                // Skalujemy kształt serca
+                const s = 1.2; 
+                ctx.bezierCurveTo(-10*s, -10*s, -20*s, 5*s, 0, 20*s);
+                ctx.bezierCurveTo(20*s, 5*s, 10*s, -10*s, 0, 0);
+                ctx.fill();
+
+                // Małe skrzydełko (animowane)
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                // Machanie skrzydłem
+                const wingY = (frames % 10 < 5) ? -5 : 0;
+                ctx.ellipse(-5, -5 + wingY, 8, 4, -0.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Twarz w środku (jeśli jest plik)
+                if (faceImg.complete && faceImg.naturalWidth !== 0) {
+                    ctx.clip(); // Przycinamy do ostatniego kształtu (skrzydła nie przytnie bo to nowy path)
+                    // Ale musimy przyciąć do serca... uprośćmy:
+                    // Rysujemy kółko w środku serca z twarzą
+                    ctx.beginPath();
+                    ctx.arc(0, 5, 8, 0, Math.PI*2);
+                    ctx.clip();
+                    ctx.drawImage(faceImg, -8, -3, 16, 16);
+                }
+
+                ctx.restore();
+            },
+
+            update: function() {
+                this.velocity += this.gravity;
+                this.y += this.velocity;
+
+                // Podłoga
+                if (this.y + this.h/2 >= canvas.height) {
+                    this.y = canvas.height - this.h/2;
+                    gameOver();
+                }
+                // Sufit
+                if (this.y - this.h/2 <= 0) {
+                    this.y = this.h/2;
+                    this.velocity = 0;
+                }
+            },
+
+            flap: function() {
+                this.velocity = this.jump;
+            }
+        };
+
+        // --- OBIEKT: RURY (KOLUMNY) ---
+        const pipes = {
+            position: [],
+            w: 50,
+            h: 0, // dynamiczne
+            gap: 160, // Odstęp między górną a dolną rurą (im więcej tym łatwiej)
+            dx: gameSpeed,
+
+            draw: function() {
+                for (let i = 0; i < this.position.length; i++) {
+                    let p = this.position[i];
+                    let topY = p.y;
+                    let bottomY = p.y + this.gap;
+
+                    ctx.fillStyle = '#d4af37'; // Złoty kolor
+                    
+                    // Górna kolumna
+                    // Trzon
+                    ctx.fillRect(p.x, 0, this.w, topY);
+                    // Ozdobna głowica (cap)
+                    ctx.fillRect(p.x - 5, topY - 20, this.w + 10, 20);
+                    // Cieniowanie (efekt 3D)
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect(p.x + 5, 0, 10, topY); 
+
+                    // Dolna kolumna
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fillRect(p.x, bottomY, this.w, canvas.height - bottomY);
+                    // Głowica
+                    ctx.fillRect(p.x - 5, bottomY, this.w + 10, 20);
+                    // Cieniowanie
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect(p.x + 5, bottomY + 20, 10, canvas.height - bottomY);
+                }
+            },
+
+            update: function() {
+                // Dodawanie nowych rur co 120 klatek
+                if (frames % 120 === 0) {
+                    // Losowa pozycja dziury
+                    // min Y = 50, max Y = canvas.height - gap - 50
+                    let maxY = canvas.height - this.gap - 100;
+                    let y = Math.floor(Math.random() * (maxY - 100)) + 100;
+                    
+                    this.position.push({
+                        x: canvas.width,
+                        y: y,
+                        passed: false
+                    });
+                }
+
+                for (let i = 0; i < this.position.length; i++) {
+                    let p = this.position[i];
+                    p.x -= this.dx;
+
+                    // Kolizje
+                    // Czy ptak jest w poziomie rury?
+                    if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w) {
+                        // Czy ptak uderzył w górną LUB dolną?
+                        // (bird.y - radius < topY) OR (bird.y + radius > bottomY)
+                        if ((bird.y - bird.radius < p.y) || (bird.y + bird.radius > p.y + this.gap)) {
+                            gameOver();
+                        }
+                    }
+
+                    // Punktacja
+                    if (p.x + this.w < bird.x && !p.passed) {
+                        score++;
+                        scoreEl.innerText = score;
+                        p.passed = true;
+                        
+                        // Sprawdź wygraną
+                        if (score >= TARGET_SCORE) {
+                            winGame();
+                        }
+                    }
+
+                    // Usuwanie starych rur
+                    if (p.x + this.w <= 0) {
+                        this.position.shift();
+                        i--; // korekta indeksu po usunięciu
+                    }
                 }
             }
-            if(winCount === 5) document.getElementById('pdf-container').style.display = 'block';
+        };
+
+        // --- PĘTLA GRY ---
+        function loop() {
+            if (!isRunning) return;
+
+            // Tło - czyścimy
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Chmury w tle (ozdoba)
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.beginPath();
+            ctx.arc((frames * 0.5) % (canvas.width + 100) - 50, 100, 30, 0, Math.PI*2);
+            ctx.fill();
+
+            pipes.update();
+            pipes.draw();
+            
+            bird.update();
+            bird.draw();
+
+            frames++;
+            requestAnimationFrame(loop);
+        }
+
+        // --- STEROWANIE ---
+        function startGame() {
+            startScreen.classList.add('hidden');
+            isRunning = true;
+            loop();
+        }
+
+        function resetGame() {
+            bird.y = 150;
+            bird.velocity = 0;
+            pipes.position = [];
+            score = 0;
+            scoreEl.innerText = score;
+            frames = 0;
+            failScreen.classList.add('hidden');
+            isRunning = true;
+            loop();
+        }
+
+        function gameOver() {
+            isRunning = false;
+            failScreen.classList.remove('hidden');
+        }
+
+        function winGame() {
+            isRunning = false;
+            localStorage.setItem('wygrana3', 'tak');
+            winScreen.classList.remove('hidden');
+        }
+
+        function finish() {
+            window.location.href = 'index.html';
+        }
+
+        // Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') bird.flap();
         });
 
-        function unlock(nr) {
-            document.getElementById('p' + nr).style.display = 'none';
-            document.getElementById('f' + nr).style.display = 'block';
-            document.getElementById('f' + nr).parentElement.onclick = null;
-        }
-
-        function gra(nr) {
-            window.location.href = 'gra' + nr + '.html';
-        }
-
-        function reset() {
-            if(confirm("Zresetować?")) { localStorage.clear(); location.reload(); }
-        }
-
-        async function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("times", "italic");
-            doc.text("Nasza Kolekcja Wspomnień", 105, 20, null, null, "center");
-            
-            // To uproszczony generator - doda tylko te zdjęcia, które są w folderze
-            for (let i = 1; i <= 5; i++) {
-                const img = document.getElementById('img' + i);
-                if (img.complete && img.naturalHeight !== 0) {
-                    doc.addImage(img, 'JPEG', 50, 30 + (i * 40), 100, 70);
-                }
+        // Obsługa dotyku i myszy na całym ekranie
+        window.addEventListener('mousedown', () => {
+            if(isRunning) bird.flap();
+        });
+        
+        window.addEventListener('touchstart', (e) => {
+            if(isRunning) {
+                e.preventDefault(); // nie scrolluj
+                bird.flap();
             }
-            doc.save("Nasze_Wspomnienia.pdf");
-        }
+        }, {passive: false});
+
     </script>
 </body>
 </html>
