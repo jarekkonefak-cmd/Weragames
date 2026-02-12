@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nasza Kolekcja Wspomnień</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;500&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -28,13 +27,12 @@
             overflow-x: hidden;
         }
 
-        /* TŁO Z PYŁEM */
+        /* --- TŁO (PYŁ) --- */
         #dust-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 10;
-            overflow: hidden;
         }
 
         .dust-speck {
@@ -53,7 +51,7 @@
             100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
         }
 
-        /* GŁÓWNE PUDEŁKO (STATYCZNE) */
+        /* --- GŁÓWNE PUDEŁKO --- */
         .shadow-box {
             width: 90%;
             max-width: 500px;
@@ -61,20 +59,12 @@
             padding: 40px 20px;
             margin: 20px 0;
             position: relative;
-            
-            /* Rama drewniana */
             border: 20px solid #fff;
-            border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
-            border-image-source: linear-gradient(to bottom right, #e6dec8, #fff);
-            border-image-slice: 1;
-            
-            /* Statyczny cień dający głębię */
             box-shadow: 
                 0 20px 50px rgba(0,0,0,0.3), 
                 inset 0 0 80px rgba(139, 90, 43, 0.1);
         }
 
-        /* Oświetlenie */
         .light-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -83,11 +73,7 @@
             z-index: 5;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
+        header { text-align: center; margin-bottom: 40px; }
         h1 {
             font-family: 'Dancing Script', cursive;
             color: #4a3b32;
@@ -95,22 +81,18 @@
             margin: 0;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
         }
-
         .subtitle {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: #888;
-            margin-top: 5px;
+            font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 4px; color: #888; margin-top: 5px;
         }
 
-        /* GALERIA */
+        /* --- GALERIA --- */
         .gallery {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 60px;
-            padding-bottom: 40px;
+            padding-bottom: 20px;
         }
 
         .spot {
@@ -118,116 +100,99 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-
         .spot:hover { transform: scale(1.02); }
 
-        /* Gwóźdź */
         .nail {
             width: 12px; height: 12px;
             background: radial-gradient(circle at 30% 30%, #666, #222);
             border-radius: 50%;
-            position: absolute;
-            top: -25px; left: 50%;
+            position: absolute; top: -25px; left: 50%;
             transform: translateX(-50%);
-            box-shadow: 1px 2px 3px rgba(0,0,0,0.4);
-            z-index: 10;
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.4); z-index: 10;
         }
 
-        /* Sznurek */
         .string-left, .string-right {
-            position: absolute;
-            top: -20px;
-            width: 2px; height: 35px;
-            background: rgba(0,0,0,0.2);
-            z-index: 1;
+            position: absolute; top: -20px; width: 2px; height: 35px;
+            background: rgba(0,0,0,0.2); z-index: 1;
         }
         .string-left { left: 30%; transform: rotate(-20deg); }
         .string-right { right: 30%; transform: rotate(20deg); }
 
-        /* STAN 1: Puste miejsce */
         .placeholder {
             width: 100%; height: 100%;
-            border: 2px dashed #ccc;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.02);
-            color: #999;
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 10px;
-            box-sizing: border-box;
+            border: 2px dashed #ccc; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.02); color: #999;
+            font-size: 0.9rem; text-align: center; padding: 10px; box-sizing: border-box;
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* STAN 2: RAMA (Kołysząca się) */
         .frame {
             width: 100%; height: 100%;
-            display: none; /* Domyślnie ukryte */
-            background: white;
-            padding: 8px;
-            box-sizing: border-box;
-            
-            /* Złota Rama */
-            border: 4px solid var(--gold);
-            outline: 2px solid #8a6e34;
-            box-shadow: 
-                0 10px 20px rgba(0,0,0,0.3),
-                inset 0 0 10px rgba(0,0,0,0.1); 
-
-            /* Animacja kołysania */
+            display: none; background: white; padding: 8px; box-sizing: border-box;
+            border: 4px solid var(--gold); outline: 2px solid #8a6e34;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.1);
             transform-origin: top center;
             animation: sway 4s ease-in-out infinite alternate;
         }
-
-        @keyframes sway {
-            0% { transform: rotate(0.5deg); }
-            100% { transform: rotate(-0.5deg); }
-        }
+        @keyframes sway { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
         .frame img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
+            width: 100%; height: 100%; object-fit: cover; display: block;
             filter: sepia(10%);
         }
 
-        /* Kształty */
+        /* Rozmiary */
         .portrait { width: 160px; height: 220px; }
         .landscape { width: 220px; height: 160px; }
         .square { width: 190px; height: 190px; }
         .oval { width: 180px; height: 220px; }
-        
         .oval .placeholder, .oval .frame, .oval img { border-radius: 50%; }
         .oval .string-left { left: 45%; top: -25px; height: 30px; }
         .oval .string-right { display: none; }
 
-        /* Przycisk PDF */
-        #pdf-container {
-            margin-top: 40px;
-            display: none;
+        /* --- FINALNY KOMUNIKAT (ZAMIAST PDF) --- */
+        #final-message {
+            margin-top: 50px;
+            display: none; /* Ukryte na start */
             text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid var(--gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            animation: popIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .btn-magic {
-            background: linear-gradient(135deg, #d4af37, #b88a44);
-            color: white;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 50px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
-            animation: pulse 2s infinite;
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+
+        .final-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .final-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .final-icon {
+            font-size: 3rem;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
         }
 
         #reset-btn {
@@ -235,14 +200,13 @@
             margin: 50px 0; padding: 5px 10px; font-size: 10px; cursor: pointer;
             opacity: 0.5;
         }
-
     </style>
 </head>
 <body>
 
     <div id="dust-container"></div>
 
-    <div class="shadow-box" id="box">
+    <div class="shadow-box">
         <div class="light-overlay"></div>
         
         <header>
@@ -289,9 +253,16 @@
 
         </div>
 
-        <div id="pdf-container">
-            <button class="btn-magic" onclick="generatePDF()">🎁 Pobierz Nasz Album (PDF)</button>
+        <div id="final-message">
+            <div class="final-title">Wszystkie wspomnienia zebrane!</div>
+            <div class="final-text">
+                To jednak tylko cyfrowy wstęp...<br>
+                <b>Prawdziwy prezent czeka na Ciebie w domu,<br>
+                gdy już wrócisz z Tajlandii! 🇹🇭✈️</b>
+            </div>
+            <div class="final-icon">🎁</div>
         </div>
+
     </div>
 
     <button id="reset-btn" onclick="reset()">Zresetuj wszystko</button>
@@ -312,13 +283,7 @@
 
         // --- 2. LOGIKA GRY ---
         document.addEventListener("DOMContentLoaded", () => {
-            // Opcjonalnie: odkomentuj, by resetować przy każdym odświeżeniu
-            /*
-            for (let i = 1; i <= 5; i++) {
-                localStorage.removeItem('wygrana' + i);
-            }
-            */
-
+            // SPRAWDZANIE STANU
             let winCount = 0;
             for (let i = 1; i <= 5; i++) {
                 if (localStorage.getItem('wygrana' + i) === 'tak') {
@@ -326,14 +291,16 @@
                     winCount++;
                 }
             }
-            if(winCount === 5) document.getElementById('pdf-container').style.display = 'block';
+            // Jeśli wszystko wygrane, pokaż wiadomość o prezencie
+            if(winCount === 5) {
+                document.getElementById('final-message').style.display = 'block';
+            }
         });
 
         function unlock(nr) {
             document.getElementById('p' + nr).style.display = 'none';
             document.getElementById('f' + nr).style.display = 'block';
             
-            // Wyłączamy klikanie po odblokowaniu
             const spot = document.getElementById('f' + nr).parentElement;
             spot.onclick = null; 
             spot.style.cursor = "default";
@@ -346,53 +313,10 @@
         }
 
         function reset() {
-            if(confirm("Czy na pewno chcesz wyczyścić postęp?")) {
+            if(confirm("Czy na pewno chcesz zresetować postęp?")) {
                 localStorage.clear();
                 location.reload();
             }
-        }
-
-        // --- 3. GENERATOR PDF ---
-        async function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFillColor(253, 251, 247);
-            doc.rect(0, 0, 210, 297, 'F');
-
-            doc.setFont("times", "bolditalic");
-            doc.setTextColor(212, 175, 55);
-            doc.setFontSize(30);
-            doc.text("Nasza Kolekcja Wspomnień", 105, 30, null, null, "center");
-            
-            doc.setFontSize(12);
-            doc.setTextColor(100);
-            doc.text("Dla mojej Walentynki ❤️", 105, 45, null, null, "center");
-
-            const layout = [
-                {x: 20, y: 60, w: 80, h: 60},  
-                {x: 110, y: 60, w: 80, h: 60}, 
-                {x: 20, y: 130, w: 80, h: 80}, 
-                {x: 110, y: 130, w: 80, h: 80},
-                {x: 65, y: 220, w: 80, h: 60}  
-            ];
-
-            for (let i = 1; i <= 5; i++) {
-                const img = document.getElementById('img' + i);
-                if (img.complete && img.naturalHeight !== 0) {
-                    try {
-                        doc.setDrawColor(212, 175, 55);
-                        doc.setLineWidth(1);
-                        doc.rect(layout[i-1].x - 2, layout[i-1].y - 2, layout[i-1].w + 4, layout[i-1].h + 4);
-                        doc.addImage(img, 'JPEG', layout[i-1].x, layout[i-1].y, layout[i-1].w, layout[i-1].h);
-                    } catch(e) { console.log(e); }
-                }
-            }
-            
-            doc.setFontSize(10);
-            doc.text("Kocham Cię!", 105, 290, null, null, "center");
-
-            doc.save("Nasze_Wspomnienia.pdf");
         }
     </script>
 </body>
