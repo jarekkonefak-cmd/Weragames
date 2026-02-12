@@ -3,72 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dla Mojej Walentynki</title>
+    <title>Nasza Galeria</title>
     <link rel="stylesheet" href="styl.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <h1>Nasza Galeria Wspomnień</h1>
-    <p class="instrukcja">Każda wygrana gra odsłania jedno wspomnienie...</p>
+    <div class="header">
+        <h1>Nasza Kolekcja Wspomnień</h1>
+        <p>Wypełnij puste miejsca na ścianie...</p>
+    </div>
 
-    <div class="muzeum">
-        <div class="ramka" onclick="sprawdzGre(1)">
-            <img src="fotka1.jpg" id="foto-1" class="ukryte">
-            <div id="klodka-1" class="klodka">
-                <span>GRA 1</span>
-                <small>Kliknij, aby zagrać</small>
-            </div>
-        </div>
-
-        <div class="ramka" onclick="sprawdzGre(2)">
-            <img src="fotka2.jpg" id="foto-2" class="ukryte">
-            <div id="klodka-2" class="klodka">
-                <span>GRA 2</span>
-                <small>Kliknij, aby zagrać</small>
-            </div>
-        </div>
-
-        <div class="ramka" onclick="sprawdzGre(3)">
-            <img src="fotka3.jpg" id="foto-3" class="ukryte">
-            <div id="klodka-3" class="klodka">
-                <span>GRA 3</span>
-                <small>Kliknij, aby zagrać</small>
-            </div>
-        </div>
+    <div class="wall">
         
+        <div class="spot">
+            <div class="nail"></div> <div id="tag-1" class="hanging-tag" onclick="idzDoGry(1)">
+                <div class="string"></div>
+                <div class="tag-paper">
+                    <span>GRA 1</span>
+                    <small>Kliknij</small>
+                </div>
+            </div>
+
+            <div id="frame-1" class="hanging-frame" style="display: none;">
+                <div class="wire"></div> <div class="gold-frame">
+                    <img src="fotka1.jpg" alt="Wspomnienie 1">
+                </div>
+            </div>
         </div>
 
-    <button onclick="resetujGre()" style="margin-top:50px; opacity:0.3;">Resetuj (Test)</button>
+        <div class="spot">
+            <div class="nail"></div>
+            <div id="tag-2" class="hanging-tag" onclick="idzDoGry(2)">
+                <div class="string"></div>
+                <div class="tag-paper">
+                    <span>GRA 2</span>
+                    <small>Kliknij</small>
+                </div>
+            </div>
+            <div id="frame-2" class="hanging-frame" style="display: none;">
+                <div class="wire"></div>
+                <div class="gold-frame">
+                    <img src="fotka2.jpg" alt="Wspomnienie 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="spot">
+            <div class="nail"></div>
+            <div id="tag-3" class="hanging-tag" onclick="idzDoGry(3)">
+                <div class="string"></div>
+                <div class="tag-paper">
+                    <span>GRA 3</span>
+                    <small>Kliknij</small>
+                </div>
+            </div>
+            <div id="frame-3" class="hanging-frame" style="display: none;">
+                <div class="wire"></div>
+                <div class="gold-frame">
+                    <img src="fotka3.jpg" alt="Wspomnienie 3">
+                </div>
+            </div>
+        </div>
+
+        <div class="spot">
+            <div class="nail"></div>
+            <div id="tag-4" class="hanging-tag" onclick="idzDoGry(4)">
+                <div class="string"></div>
+                <div class="tag-paper">
+                    <span>GRA 4</span>
+                    <small>Kliknij</small>
+                </div>
+            </div>
+            <div id="frame-4" class="hanging-frame" style="display: none;">
+                <div class="wire"></div>
+                <div class="gold-frame">
+                    <img src="fotka4.jpg" alt="Wspomnienie 4">
+                </div>
+            </div>
+        </div>
+
+        <div class="spot">
+            <div class="nail"></div>
+            <div id="tag-5" class="hanging-tag" onclick="idzDoGry(5)">
+                <div class="string"></div>
+                <div class="tag-paper">
+                    <span>GRA 5</span>
+                    <small>Kliknij</small>
+                </div>
+            </div>
+            <div id="frame-5" class="hanging-frame" style="display: none;">
+                <div class="wire"></div>
+                <div class="gold-frame">
+                    <img src="fotka5.jpg" alt="Wspomnienie 5">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button onclick="resetuj()" style="margin-top:50px; opacity:0.2; border:none; background:none; color:white;">Reset</button>
 
     <script>
-        // Ta funkcja uruchamia się zawsze po wejściu na stronę
-        // Sprawdza, które gry są już wygrane
-        for (let i = 1; i <= 5; i++) {
-            // Sprawdzamy w pamięci przeglądarki czy jest wpis "wygrana1", "wygrana2" itd.
-            if (localStorage.getItem('wygrana' + i) === 'tak') {
-                odblokuj(i);
+        // SPRAWDZANIE STANU GRY
+        document.addEventListener("DOMContentLoaded", () => {
+            for (let i = 1; i <= 5; i++) {
+                if (localStorage.getItem('wygrana' + i) === 'tak') {
+                    pokazObraz(i);
+                }
             }
+        });
+
+        function pokazObraz(nr) {
+            // Ukryj karteczkę
+            document.getElementById('tag-' + nr).style.display = 'none';
+            // Pokaż obraz
+            document.getElementById('frame-' + nr).style.display = 'block';
         }
 
-        function odblokuj(numer) {
-            document.getElementById('foto-' + numer).classList.remove('ukryte');
-            document.getElementById('klodka-' + numer).style.display = 'none';
+        function idzDoGry(nr) {
+            window.location.href = 'gra' + nr + '.html';
         }
 
-        function sprawdzGre(numer) {
-            if (localStorage.getItem('wygrana' + numer) === 'tak') {
-                alert("Już zdobyłaś to zdjęcie! Kocham Cię! ❤️");
-            } else {
-                // Przenosi do pliku gra1.html, gra2.html itd.
-                window.location.href = 'gra' + numer + '.html';
-            }
-        }
-
-        function resetujGre() {
+        function resetuj() {
             localStorage.clear();
             location.reload();
         }
     </script>
-
 </body>
 </html>
