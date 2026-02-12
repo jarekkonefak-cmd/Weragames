@@ -3,159 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gra 3: Quiz o Nas</title>
+    <title>Gra 3: Zdrapka</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #ffe6f2; /* Bardzo jasny róż */
+            margin: 0;
+            padding: 0;
+            background-color: #ffe6e6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; /* Żeby nie przesuwać ekranu przy zdrapywaniu */
+        }
+
+        h2 {
             color: #d63384;
-            font-family: 'Verdana', sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .quiz-container {
-            background: white;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border: 2px solid #d63384;
-        }
-
-        h2 { margin-top: 0; }
-
-        .question {
-            font-size: 20px;
             margin-bottom: 20px;
-            font-weight: bold;
+            text-align: center;
         }
 
-        .options button {
-            display: block;
+        .scratch-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border: 5px solid #d63384;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            background: white; /* Tło pod zdrapką */
+            overflow: hidden;
+        }
+
+        /* To co jest ukryte pod zdrapką */
+        .secret-message {
             width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background-color: #fff;
-            border: 2px solid #d63384;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             color: #d63384;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
         }
 
-        .options button:hover {
-            background-color: #d63384;
-            color: white;
+        .secret-message h3 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 40px;
+            margin: 0;
+        }
+        
+        .secret-message p {
+            font-size: 18px;
+            margin-top: 10px;
         }
 
-        /* Pasek postępu (kropki na dole) */
-        .progress {
-            margin-top: 20px;
-            color: #aaa;
-            font-size: 14px;
+        /* Płótno, które zdrapujemy */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none; /* WAŻNE: Blokuje przewijanie strony na telefonie */
         }
 
-        a {
-            display: block;
+        .back-btn {
             margin-top: 30px;
-            color: #d63384;
             text-decoration: none;
+            color: #d63384;
+            border: 1px solid #d63384;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none; /* Ukryty, dopóki nie wygra */
+        }
+
+        .instruction {
+            margin-top: 10px;
+            color: #888;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-    <div class="quiz-container">
-        <h2>Jak dobrze nas znasz? ❤️</h2>
-        
-        <div id="quiz-box">
-            <p class="question" id="question-text">Ładowanie pytania...</p>
-            <div class="options" id="options-box">
-                </div>
-            <p class="progress" id="progress-text">Pytanie 1 z 3</p>
+    <h2>Zdrap, aby odkryć niespodziankę! ✨</h2>
+
+    <div class="scratch-container">
+        <div class="secret-message">
+            <h3>Kocham Cię!</h3>
+            <p>Jesteś moją wygraną ❤️</p>
         </div>
+        
+        <canvas id="scratchCanvas"></canvas>
     </div>
 
-    <a href="index.html">Poddaję się (wróć do muzeum)</a>
+    <p class="instruction">Przesuwaj palcem lub myszką po szarym polu.</p>
+
+    <a href="index.html" class="back-btn" id="winBtn">Wróć do Pudełka Wspomnień</a>
 
     <script>
-        // --- TUTAJ WPISZ SWOJE PYTANIA ---
-        // Format: 
-        // { q: "Pytanie", a: ["Odp A", "Odp B", "Odp C"], correct: Numer_Poprawnej_Odpowiedzi (0, 1 lub 2) }
-        // Pamiętaj: liczymy od zera! (0 to pierwsza odp, 1 to druga, 2 to trzecia)
+        const canvas = document.getElementById('scratchCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = 300;
+        const height = 300;
         
-        const questions = [
-            {
-                q: "Gdzie poszliśmy na pierwszą randkę?",
-                a: ["Do kina", "Na spacer do parku", "Na pizzę"],
-                correct: 1 // To znaczy, że poprawna jest "Na spacer do parku"
-            },
-            {
-                q: "Jaki jest mój ulubiony kolor?",
-                a: ["Niebieski", "Czerwony", "Czarny"],
-                correct: 0 // Niebieski
-            },
-            {
-                q: "Co najbardziej w Tobie lubię?",
-                a: ["Twój uśmiech", "Twoje oczy", "Wszystko!", "To podchwytliwe..."],
-                correct: 2 // Wszystko!
-            }
-        ];
+        // Ustawiamy rzeczywisty rozmiar canvasa
+        canvas.width = width;
+        canvas.height = height;
 
-        let currentQuestion = 0;
-
-        function loadQuestion() {
-            const q = questions[currentQuestion];
-            document.getElementById("question-text").innerText = q.q;
-            document.getElementById("progress-text").innerText = `Pytanie ${currentQuestion + 1} z ${questions.length}`;
+        // 1. Rysujemy szarą powłokę (do zdrapywania)
+        function initCard() {
+            ctx.fillStyle = '#C0C0C0'; // Srebrny kolor
+            ctx.fillRect(0, 0, width, height);
             
-            const optionsBox = document.getElementById("options-box");
-            optionsBox.innerHTML = ""; // Czyścimy poprzednie przyciski
-
-            // Tworzymy przyciski dla odpowiedzi
-            q.a.forEach((answer, index) => {
-                const btn = document.createElement("button");
-                btn.innerText = answer;
-                btn.onclick = () => checkAnswer(index);
-                optionsBox.appendChild(btn);
-            });
+            // Opcjonalnie: Napis na wierzchu zdrapki
+            ctx.fillStyle = '#888';
+            ctx.font = "20px Arial";
+            ctx.fillText("ZDRAP MNIE", 90, 150);
         }
 
-        function checkAnswer(selectedIndex) {
-            const correctIndex = questions[currentQuestion].correct;
+        initCard();
 
-            if (selectedIndex === correctIndex) {
-                // DOBRA ODPOWIEDŹ
-                currentQuestion++;
-                
-                if (currentQuestion < questions.length) {
-                    loadQuestion(); // Następne pytanie
-                } else {
-                    gameWon(); // Koniec gry
+        let isDrawing = false;
+
+        // Funkcja zdrapywania (rysowanie przezroczystością)
+        function scratch(x, y) {
+            ctx.globalCompositeOperation = 'destination-out'; // To sprawia, że pędzel "gumuje"
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2); // Rozmiar pędzla (20px)
+            ctx.fill();
+        }
+
+        // --- OBSŁUGA MYSZKI ---
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            scratch(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                const rect = canvas.getBoundingClientRect();
+                scratch(e.clientX - rect.left, e.clientY - rect.top);
+                checkWin();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => { isDrawing = false; });
+        canvas.addEventListener('mouseleave', () => { isDrawing = false; });
+
+        // --- OBSŁUGA DOTYKU (TELEFON) ---
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Blokuje scrollowanie
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isDrawing) {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+                checkWin();
+            }
+        });
+
+        canvas.addEventListener('touchend', () => { isDrawing = false; });
+
+        // --- SPRAWDZANIE WYGRANEJ ---
+        let won = false;
+        function checkWin() {
+            if (won) return;
+
+            // Pobieramy dane pikseli z całego canvasa
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+            let transparentPixels = 0;
+
+            // Sprawdzamy co 4 piksel (żeby było szybciej)
+            for (let i = 3; i < pixels.length; i += 4) {
+                if (pixels[i] === 0) { // Alpha = 0 (przezroczysty)
+                    transparentPixels++;
                 }
-            } else {
-                // ZŁA ODPOWIEDŹ
-                alert("Oj, chyba nie... Spróbuj jeszcze raz Kochanie! 🙈");
+            }
+
+            // Obliczamy procent zdrapania
+            const totalPixels = pixels.length / 4;
+            const percent = (transparentPixels / totalPixels) * 100;
+
+            // Jeśli zdrapano więcej niż 40% powierzchni -> WYGRANA
+            if (percent > 40) {
+                won = true;
+                finishGame();
             }
         }
 
-        function gameWon() {
-            // Zapisujemy wygraną dla Muzeum
-            localStorage.setItem('wygrana3', 'tak');
+        function finishGame() {
+            // Animacja zniknięcia reszty zdrapki
+            canvas.style.transition = "opacity 1s";
+            canvas.style.opacity = "0";
             
-            document.querySelector(".quiz-container").innerHTML = `
-                <h2>Brawo! 🎉</h2>
-                <p>Znasz nas idealnie!</p>
-                <p>Trzecie zdjęcie zostało odblokowane.</p>
-                <button onclick="window.location.href='index.html'" style="padding:15px; background:#d63384; color:white; border:none; border-radius:5px; cursor:pointer;">Wróć do Muzeum</button>
-            `;
+            // Pokazanie przycisku
+            const btn = document.getElementById('winBtn');
+            btn.style.display = "block";
+            btn.innerText = "Brawo! Odbierz obraz 🎁";
+            
+            // ZAPISANIE W PAMIĘCI
+            localStorage.setItem('wygrana3', 'tak');
         }
-
-        // Startujemy quiz
-        loadQuestion();
-
     </script>
 </body>
 </html>
