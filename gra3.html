@@ -4,320 +4,351 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gra 3: Strzała Amora</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --gold: #d4af37;
-            --bg: #f9f7f2;
-            --heart: #e63946;
-            --arrow: #333;
-        }
-
         body {
             margin: 0;
-            background-color: var(--bg);
+            background: #fdfbf7;
             font-family: 'Montserrat', sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            touch-action: none;
+            touch-action: none; /* Blokada zoomowania */
         }
 
-        .ui-layer {
+        /* --- INTERFEJS --- */
+        .ui {
             position: absolute;
             top: 20px;
-            text-align: center;
-            z-index: 10;
-            pointer-events: none;
             width: 100%;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
         }
 
         h2 {
             font-family: 'Dancing Script', cursive;
-            color: var(--gold);
-            font-size: 2.2rem;
+            color: #d4af37;
+            font-size: 2.5rem;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
-        .info-bar {
-            margin-top: 10px;
-            font-size: 0.9rem;
+        .level-info {
             color: #888;
-            letter-spacing: 1px;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
+
+        /* POKAZYWANIE ILE STRZAŁ ZOSTAŁO */
+        .ammo-dots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .dot {
+            width: 10px; height: 10px;
+            background: #d4af37;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        .dot.active { opacity: 1; transform: scale(1.2); }
 
         canvas {
             display: block;
-            margin-top: 20px;
         }
 
-        /* Modal Wygranej */
-        #win-screen {
+        /* EKRANY KOŃCOWE */
+        .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255,255,0.95);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 100;
-            text-align: center;
         }
 
-        /* Modal Przegranej */
-        #fail-effect {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 0, 0, 0.2);
-            display: none;
-            pointer-events: none;
-            z-index: 90;
-        }
-
-        .btn-gold {
-            background: linear-gradient(135deg, #d4af37, #b88a44);
+        .btn {
+            background: #d4af37;
             color: white;
-            border: none;
             padding: 15px 40px;
+            border: none;
             border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: bold;
             cursor: pointer;
             margin-top: 20px;
-            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
             text-decoration: none;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-retry {
+            background: #ff4d4d;
+            box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
         }
 
-        .arrows-left {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--gold);
-            margin-top: 5px;
+        /* EFEKT BŁĘDU (Flash) */
+        #flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: red; opacity: 0; pointer-events: none; z-index: 50;
+            transition: opacity 0.1s;
         }
     </style>
 </head>
 <body>
 
-    <div class="ui-layer">
-        <h2>Traf w moje serce...</h2>
-        <div class="info-bar">Nie traf w inne strzały!</div>
-        <div class="arrows-left" id="ammo-count">Strzał: 6</div>
+    <div class="ui">
+        <h2>Traf w moje serce</h2>
+        <div class="level-info">Nie traf w inne strzały!</div>
+        <div class="ammo-dots" id="ammo-container"></div>
     </div>
 
-    <div id="fail-effect"></div>
+    <div id="flash"></div>
     <canvas id="gameCanvas"></canvas>
 
-    <div id="win-screen">
-        <h1 style="font-family: 'Dancing Script'; font-size: 3rem; color: var(--gold);">Idealnie!</h1>
-        <p>Twoja celność jest niesamowita.</p>
-        <a href="index.html" class="btn-gold" onclick="finish()">Odbierz obraz</a>
+    <div id="win-modal" class="modal">
+        <h1 style="color: #d4af37; font-family: 'Dancing Script'; font-size: 3rem;">Idealnie!</h1>
+        <p>Masz cela prosto do mojego serca.</p>
+        <a href="index.html" class="btn" onclick="finish()">Odbierz obraz</a>
+    </div>
+
+    <div id="fail-modal" class="modal" style="background: rgba(0,0,0,0.8);">
+        <h1 style="color: white; font-family: 'Dancing Script'; font-size: 3rem;">Ała! 💔</h1>
+        <p style="color: white;">Strzały się zderzyły. Spróbuj jeszcze raz.</p>
+        <button class="btn btn-retry" onclick="resetGame()">Spróbuj ponownie</button>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const ammoDisplay = document.getElementById('ammo-count');
-        
-        // Ustawienia ekranu
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 3; // Serce trochę wyżej
+        const ammoContainer = document.getElementById('ammo-container');
 
-        // Konfiguracja gry
-        let arrowsToShoot = 6;
-        let rotationAngle = 0;
-        let rotationSpeed = 0.03;
-        let gameActive = true;
+        // Ustawienia
+        let CW, CH;
+        let centerX, centerY;
         
-        // Tablica strzał wbitych w serce (kąty)
-        let pinnedArrows = []; 
+        // Stan gry
+        let arrows = []; // Strzały wbite w serce (kąty)
+        let totalArrows = 8; // Ile trzeba wbić żeby wygrać
+        let arrowsLeft = totalArrows;
+        let rotation = 0;
+        let speed = 0.02; // Prędkość obrotu
+        let isDead = false;
+        let flyingArrow = null; // Pozycja Y lecącej strzały (jeśli istnieje)
         
-        // Strzała która leci
-        let flyingArrow = null;
+        // Konfiguracja wizualna
+        const HEART_RADIUS = 60;
+        const ARROW_LEN = 120;
+        const PIN_DEPTH = 20; // Jak głęboko strzała wchodzi w serce
 
-        const heartRadius = 60;
-        const arrowLength = 120;
+        // Twarz (opcjonalnie)
+        const faceImg = new Image();
+        faceImg.src = 'twarz.png';
 
-        function drawHeart() {
+        function resize() {
+            CW = canvas.width = window.innerWidth;
+            CH = canvas.height = window.innerHeight;
+            centerX = CW / 2;
+            centerY = CH / 3; // Serce jest w 1/3 wysokości ekranu
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function updateAmmoUI() {
+            ammoContainer.innerHTML = '';
+            for(let i=0; i<arrowsLeft; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot', 'active');
+                ammoContainer.appendChild(dot);
+            }
+        }
+
+        // Rysowanie serca
+        function drawHeart(x, y, r, angle) {
             ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(rotationAngle);
+            ctx.translate(x, y);
+            ctx.rotate(angle);
             
-            ctx.fillStyle = "#e63946";
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 20;
             ctx.shadowColor = "rgba(230, 57, 70, 0.4)";
+            ctx.fillStyle = "#e63946"; // Czerwony
             
-            // Rysowanie serca
-            const size = heartRadius;
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.bezierCurveTo(-size, -size, -size*1.5, size/3, 0, size*1.2);
-            ctx.bezierCurveTo(size*1.5, size/3, size, -size, 0, 0);
+            // Kształt serca matematyczny
+            for (let i = 0; i < Math.PI * 2; i += 0.1) {
+                let x = 16 * Math.pow(Math.sin(i), 3);
+                let y = -(13 * Math.cos(i) - 5 * Math.cos(2 * i) - 2 * Math.cos(3 * i) - Math.cos(4 * i));
+                // Skalowanie
+                x *= (r / 16);
+                y *= (r / 16);
+                ctx.lineTo(x, y);
+            }
             ctx.fill();
 
-            // Opcjonalnie: Twarz w środku (jeśli wgrana)
-            // Jeśli chcesz tu też zdjęcie, odkomentuj poniższe linie:
-            /*
-            ctx.clip();
-            const img = new Image(); img.src = 'twarz.png';
-            if(img.complete) ctx.drawImage(img, -size, -size, size*2, size*2);
-            */
-
+            // Rysowanie twarzy w środku (jeśli jest)
+            ctx.clip(); // Przycinamy do kształtu serca
+            if (faceImg.complete && faceImg.naturalWidth !== 0) {
+                // Rysujemy zdjęcie
+                ctx.rotate(-angle); // Kontrujemy obrót, żeby twarz była prosto? 
+                // Albo niech się kręci - śmieszniej. Zostawmy kręcenie.
+                // Żeby twarz się kręciła:
+                ctx.drawImage(faceImg, -r, -r, r*2, r*2);
+            } 
+            
             ctx.restore();
         }
 
-        function drawPinnedArrows() {
-            pinnedArrows.forEach(angle => {
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(rotationAngle + angle);
-                
-                // Linia strzały
-                ctx.strokeStyle = "#333";
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(0, heartRadius - 10); // Start lekko w sercu
-                ctx.lineTo(0, heartRadius + arrowLength);
-                ctx.stroke();
-
-                // Lotka strzały (kółko na końcu)
-                ctx.fillStyle = "#d4af37";
-                ctx.beginPath();
-                ctx.arc(0, heartRadius + arrowLength, 8, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.restore();
-            });
-        }
-
-        function drawPlayerArrow() {
-            // Pozycja startowa strzały (dół ekranu)
-            const startY = canvas.height - 100;
-            
-            let yPos = startY;
-            if (flyingArrow) {
-                yPos = flyingArrow.y;
-            }
-
+        function drawArrow(x, y, angle) {
             ctx.save();
-            ctx.translate(centerX, yPos);
+            ctx.translate(x, y);
+            ctx.rotate(angle);
             
-            ctx.strokeStyle = "#333";
-            ctx.lineWidth = 3;
+            // Trzonek
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(0, arrowLength); // Strzała skierowana w górę
+            ctx.lineTo(0, ARROW_LEN);
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 4;
             ctx.stroke();
 
-            // Lotka
-            ctx.fillStyle = "#333";
+            // Grot (kulka na końcu)
             ctx.beginPath();
-            ctx.arc(0, arrowLength, 8, 0, Math.PI*2);
+            ctx.arc(0, ARROW_LEN, 6, 0, Math.PI*2);
+            ctx.fillStyle = "#d4af37";
             ctx.fill();
-            
+
             ctx.restore();
         }
 
-        function update() {
-            if (!gameActive) return;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function loop() {
+            if (isDead && flyingArrow === null) return; // Zatrzymaj pętlę tylko jak przegrana i brak animacji
+            requestAnimationFrame(loop);
 
-            // Zmiana prędkości obrotu (utrudnienie!)
-            // Co jakiś czas serce zwalnia, przyspiesza lub cofa
-            if (Math.random() < 0.01) rotationSpeed = -rotationSpeed; // Zmiana kierunku
-            if (Math.random() < 0.02) rotationSpeed = (Math.random() * 0.06) + 0.02; // Zmiana prędkości
+            ctx.clearRect(0, 0, CW, CH);
 
-            rotationAngle += rotationSpeed;
+            // Aktualizacja obrotu
+            // Zmienna prędkość dla utrudnienia
+            if (!isDead) {
+                rotation += speed;
+                // Co jakiś czas zmiana prędkości
+                if (Date.now() % 2000 < 20) {
+                    speed = (Math.random() * 0.04) + 0.01; 
+                    if(Math.random() > 0.5) speed *= -1; // Czasem zmień kierunek
+                }
+            }
 
-            drawPinnedArrows();
-            drawHeart();
-            
-            // Obsługa lecącej strzały
-            if (flyingArrow) {
-                flyingArrow.y -= 25; // Prędkość lotu
+            // 1. Rysuj wbite strzały
+            // Ważne: one kręcą się razem z sercem
+            for (let arrowAngle of arrows) {
+                // Pozycja wbicia na obwodzie koła
+                // Matematyka: pozycja to środek + wektor obrócony o (rotation + arrowAngle)
+                const currentAngle = rotation + arrowAngle;
                 
-                // Sprawdzenie czy trafiła w serce
-                // Granica trafienia to mniej więcej środek serca + promień
-                if (flyingArrow.y <= centerY + heartRadius) {
+                const pinX = centerX + Math.cos(currentAngle) * (HEART_RADIUS - PIN_DEPTH);
+                const pinY = centerY + Math.sin(currentAngle) * (HEART_RADIUS - PIN_DEPTH);
+
+                // Strzała wystaje na zewnątrz, więc jej kąt to currentAngle
+                drawArrow(pinX, pinY, currentAngle + Math.PI/2); 
+            }
+
+            // 2. Rysuj serce na wierzchu (żeby przykryć groty strzał)
+            drawHeart(centerX, centerY, HEART_RADIUS, rotation);
+
+            // 3. Rysuj strzałę gracza (tą co leci albo czeka)
+            if (flyingArrow !== null) {
+                // Leci
+                flyingArrow -= 25; // Szybkość lotu
+                drawArrow(centerX, flyingArrow, Math.PI); // Math.PI żeby była skierowana w górę
+
+                // Kolizja z sercem
+                if (flyingArrow <= centerY + HEART_RADIUS - PIN_DEPTH) {
+                    // TRAFIENIE!
                     
-                    // Obliczamy kąt w jakim wbiła się strzała
-                    // Ponieważ strzała leci pionowo z dołu, to wchodzi pod kątem PI/2 (90 stopni) względem koła
-                    // Musimy odjąć obecny obrót serca, żeby "przykleić" ją w tym punkcie
-                    let hitAngle = (Math.PI / 2) - rotationAngle;
+                    // Obliczamy kąt trafienia względem OBECNEGO obrotu serca
+                    // Strzała uderza od dołu, czyli w kącie 90 stopni (PI/2)
+                    // Ale serce jest obrócone o 'rotation'.
+                    // Więc relatywny kąt to: PI/2 - rotation
+                    let hitAngle = (Math.PI / 2) - rotation;
                     
-                    // Normalizacja kąta do 0-2PI
+                    // Normalizacja do 0-2PI
                     hitAngle = hitAngle % (Math.PI * 2);
                     if (hitAngle < 0) hitAngle += Math.PI * 2;
 
-                    // SPRAWDZENIE KOLIZJI
-                    let collision = false;
-                    const safeZone = 0.25; // Minimalny odstęp między strzałami (w radianach)
+                    // Sprawdź czy nie uderzyliśmy w inną strzałę
+                    let crash = false;
+                    const minDistance = 0.3; // Minimalny odstęp w radianach
 
-                    for (let existingAngle of pinnedArrows) {
-                        // Sprawdzamy różnicę kątów
-                        let diff = Math.abs(existingAngle - hitAngle);
-                        // Obsługa przejścia przez 0/360
-                        if (diff > Math.PI) diff = (Math.PI * 2) - diff;
-                        
-                        if (diff < safeZone) {
-                            collision = true;
+                    for (let existing of arrows) {
+                        let diff = Math.abs(existing - hitAngle);
+                        if (diff > Math.PI) diff = (Math.PI * 2) - diff; // Obsługa przejścia przez 0
+                        if (diff < minDistance) {
+                            crash = true;
                             break;
                         }
                     }
 
-                    if (collision) {
+                    if (crash) {
                         gameOver();
                     } else {
-                        // Sukces - wbijamy strzałę
-                        pinnedArrows.push(hitAngle);
+                        // Sukces
+                        arrows.push(hitAngle);
                         flyingArrow = null;
-                        arrowsToShoot--;
-                        ammoDisplay.innerText = "Strzał: " + arrowsToShoot;
+                        arrowsLeft--;
+                        updateAmmoUI();
 
                         // Efekt wstrząsu
-                        canvas.style.transform = "translate(2px, 2px)";
-                        setTimeout(() => canvas.style.transform = "none", 50);
+                        ctx.translate(Math.random()*4-2, Math.random()*4-2);
 
-                        if (arrowsToShoot <= 0) {
-                            winGame();
+                        if (arrowsLeft <= 0) {
+                            win();
                         }
                     }
                 }
-            } else if (arrowsToShoot > 0) {
-                drawPlayerArrow(); // Rysuj strzałę gotową do wystrzału
+            } else if (!isDead && arrowsLeft > 0) {
+                // Czeka na wystrzał
+                drawArrow(centerX, CH - 100, Math.PI);
             }
-
-            requestAnimationFrame(update);
         }
 
         function shoot() {
-            if (gameActive && !flyingArrow && arrowsToShoot > 0) {
-                flyingArrow = { y: canvas.height - 100 };
-            }
+            if (isDead || flyingArrow !== null || arrowsLeft <= 0) return;
+            flyingArrow = CH - 100; // Startujemy lot
         }
 
         function gameOver() {
-            // Efekt czerwonego ekranu
-            const fail = document.getElementById('fail-effect');
-            fail.style.display = 'block';
-            setTimeout(() => fail.style.display = 'none', 200);
-
-            // Reset gry
-            pinnedArrows = [];
-            arrowsToShoot = 6;
-            ammoDisplay.innerText = "Strzał: " + arrowsToShoot;
-            rotationSpeed = 0.03;
+            isDead = true;
+            document.getElementById('flash').style.opacity = 0.5;
+            setTimeout(() => document.getElementById('flash').style.opacity = 0, 100);
+            
+            // Pokaż ekran przegranej
+            setTimeout(() => {
+                document.getElementById('fail-modal').style.display = 'flex';
+            }, 500);
         }
 
-        function winGame() {
-            gameActive = false;
+        function resetGame() {
+            isDead = false;
+            arrows = [];
+            arrowsLeft = totalArrows;
+            flyingArrow = null;
+            speed = 0.02;
+            updateAmmoUI();
+            document.getElementById('fail-modal').style.display = 'none';
+            loop(); // Restart pętli
+        }
+
+        function win() {
+            isDead = true; // Zatrzymujemy strzelanie
             localStorage.setItem('wygrana3', 'tak');
             setTimeout(() => {
-                document.getElementById('win-screen').style.display = 'flex';
+                document.getElementById('win-modal').style.display = 'flex';
             }, 500);
         }
 
@@ -328,18 +359,14 @@
         // Sterowanie
         window.addEventListener('mousedown', shoot);
         window.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Stop zoom
             shoot();
         }, {passive: false});
 
         // Start
-        update();
+        updateAmmoUI();
+        loop();
 
-        // Skalowanie
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
     </script>
 </body>
 </html>
