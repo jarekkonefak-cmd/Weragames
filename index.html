@@ -4,333 +4,277 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nasze Pudełko Wspomnień</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        /* --- BAZA I TŁO (Styl Pudełka) --- */
+        :root {
+            --wood-frame: #ffffff;
+            --bg-paper: #f9f7f2;
+            --gold-main: #d4af37;
+            --gold-light: #fcf6ba;
+            --text-dark: #422a2a;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #fdfbf7; /* Kremowe tło */
-            font-family: 'Playfair Display', serif;
-            min-height: 100vh;
+            background-color: #e0dcd5; /* Tło za pudełkiem */
+            font-family: 'Montserrat', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        /* Imitacja wnętrza pudełka (Shadow Box) */
-        .shadow-box-container {
-            width: 90%;
-            max-width: 600px; /* Szerokość na telefonie */
-            background: #fff;
-            margin: 20px auto;
-            padding: 30px 20px;
-            box-shadow: 
-                inset 0 0 50px rgba(0,0,0,0.1), /* Cień wewnątrz */
-                0 0 20px rgba(0,0,0,0.1); /* Cień na zewnątrz */
-            border: 15px solid white; /* Gruba biała rama pudełka */
-            border-radius: 5px;
+        /* --- GŁÓWNE PUDEŁKO (SHADOW BOX) --- */
+        .shadow-box {
+            width: 92%;
+            max-width: 500px;
+            background: var(--bg-paper);
+            margin: 30px auto;
+            padding: 40px 20px;
+            border: 15px solid var(--wood-frame);
             position: relative;
+            /* Potężny efekt głębi */
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.2), 
+                inset 0 0 60px rgba(0,0,0,0.05);
+            border-radius: 2px;
         }
 
-        /* Oświetlenie LED (jak na zdjęciu) */
-        .shadow-box-container::before {
-            content: '';
+        /* Dekoracyjne światełko u góry */
+        .spotlight {
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 150px;
-            background: radial-gradient(circle at top, rgba(255, 255, 200, 0.4), transparent 70%);
+            height: 200px;
+            background: radial-gradient(circle at 50% -10%, rgba(255, 255, 220, 0.5), transparent 70%);
             pointer-events: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
         }
 
         h1 {
             font-family: 'Dancing Script', cursive;
-            color: #d4af37; /* Złoty tekst */
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 40px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            color: var(--text-dark);
+            font-size: 2.8rem;
+            margin: 0;
+            letter-spacing: 1px;
         }
 
-        /* --- UKŁAD GALERII (Pionowy scroll) --- */
-        .gallery-column {
+        .subtitle {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        /* --- GALERIA PIONOWA --- */
+        .gallery {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 40px; /* Odstępy między ramkami */
-            width: 100%;
+            gap: 50px;
         }
 
-        /* --- MIEJSCE NA ZDJĘCIE (Spot) --- */
         .spot {
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s;
-            /* KLUCZOWE DLA KLIKANIA NA TELEFONIE: */
-            z-index: 10; 
-            touch-action: manipulation;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .spot:active {
-            transform: scale(0.95);
+        .spot:hover { transform: scale(1.03); }
+
+        /* Kształty */
+        .pion { width: 170px; height: 230px; }
+        .poziom { width: 230px; height: 170px; }
+        .kwadrat { width: 190px; height: 190px; }
+        .owal { width: 180px; height: 220px; border-radius: 50%; }
+
+        /* Gwóźdź */
+        .nail {
+            width: 8px; height: 8px;
+            background: #444;
+            border-radius: 50%;
+            position: absolute;
+            top: -20px; left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            z-index: 5;
         }
 
-        /* KSZTAŁTY */
-        .shape-portrait { width: 160px; height: 220px; }
-        .shape-landscape { width: 220px; height: 160px; }
-        .shape-square { width: 180px; height: 180px; }
-        .shape-oval { width: 170px; height: 210px; border-radius: 50%; }
-
-        /* --- STAN 1: NIEODBLOKOWANE (Przerywana linia) --- */
-        .dashed-box {
-            width: 100%;
-            height: 100%;
-            border: 2px dashed #ccc; /* Szara przerywana linia */
-            border-radius: 5px;
+        /* Linia przerywana */
+        .placeholder {
+            width: 100%; height: 100%;
+            border: 1px dashed #bbb;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 10px;
-            box-sizing: border-box;
-            background: rgba(0,0,0,0.02);
-            color: #888;
-            font-size: 0.9rem;
+            color: #aaa;
+            font-size: 0.75rem;
             font-style: italic;
-        }
-
-        .shape-oval .dashed-box { border-radius: 50%; }
-
-        /* --- STAN 2: ODBLOKOWANE (Złota Rama) --- */
-        .ornate-frame {
-            width: 100%;
-            height: 100%;
-            display: none; /* Domyślnie ukryte */
-            /* Stylizacja złotej ramy - bogatsza */
-            border: 8px solid #d4af37;
-            border-radius: 3px;
-            box-shadow: 
-                0 5px 15px rgba(0,0,0,0.3), /* Cień rzucany przez ramkę */
-                inset 0 0 10px rgba(0,0,0,0.5); /* Cień wewnątrz ramki */
-            background: #000;
-            overflow: hidden;
-            position: relative;
-            /* Imitacja złotej faktury */
-            background-image: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            padding: 5px; /* Passe-partout (wewnętrzna ramka) */
+            padding: 20px;
             box-sizing: border-box;
+            background: rgba(0,0,0,0.01);
         }
+        .owal .placeholder { border-radius: 50%; }
 
-        .shape-oval .ornate-frame {
-            border-radius: 50%;
+        /* --- ZŁOTA RAMA (FINALNA) --- */
+        .frame {
+            width: 100%; height: 100%;
+            display: none;
+            position: relative;
+            background: white;
             padding: 6px;
+            box-sizing: border-box;
+            border: 2px solid #b88a44;
+            /* Złożony efekt ramy */
+            box-shadow: 
+                0 10px 20px rgba(0,0,0,0.15),
+                inset 0 0 0 4px var(--gold-main),
+                inset 0 0 0 5px var(--gold-light);
+            animation: hang 1.2s ease-out;
+        }
+        .owal .frame { border-radius: 50%; padding: 8px; }
+
+        @keyframes hang {
+            0% { transform: translateY(-20px) rotate(3deg); opacity: 0; }
+            50% { transform: translateY(0) rotate(-2deg); }
+            100% { transform: translateY(0) rotate(0); opacity: 1; }
         }
 
-        /* Obrazek w środku */
-        .photo-content {
-            width: 100%;
-            height: 100%;
+        .photo {
+            width: 100%; height: 100%;
             object-fit: cover;
             display: block;
-            background: white;
-            border-radius: 1px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        .owal .photo { border-radius: 50%; }
+
+        /* --- PRZYCISK PDF --- */
+        #pdf-container {
+            text-align: center;
+            margin-top: 60px;
+            display: none;
         }
 
-        .shape-oval .photo-content { border-radius: 50%; }
-
-        /* --- PRZYCISK PDF (Na dole) --- */
-        #pdf-btn {
-            margin-top: 50px;
-            padding: 15px 30px;
-            background: #d4af37;
+        .btn-pdf {
+            background: linear-gradient(135deg, #d4af37, #b88a44);
             color: white;
             border: none;
-            border-radius: 30px;
-            font-size: 1.1rem;
-            font-family: 'Playfair Display', serif;
+            padding: 18px 35px;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
-            display: none; /* Ukryty dopóki nie wygrasz wszystkiego */
-            animation: pulse 2s infinite;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+            transition: 0.3s;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .btn-pdf:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(212, 175, 55, 0.5);
         }
 
-        /* RESET (Mały na dole) */
         #reset-btn {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            opacity: 0.2;
-            font-size: 10px;
-            background: none;
-            border: 1px solid #ccc;
+            background: none; border: none; color: #ccc;
+            margin: 40px 0; cursor: pointer; font-size: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="shadow-box-container">
-        <h1>Nasza Historia ❤️</h1>
+    <div class="shadow-box">
+        <div class="spotlight"></div>
+        
+        <header>
+            <h1>Nasza Historia</h1>
+            <div class="subtitle">Kolekcja Wspomnień</div>
+        </header>
 
-        <div class="gallery-column" id="gallery">
-
-            <div class="spot shape-portrait" onclick="idzDoGry(1)">
-                <div class="dashed-box" id="dash-1">
-                    Odblokuj pierwszy obraz
-                </div>
-                <div class="ornate-frame" id="frame-1">
-                    <img src="fotka1.jpg" class="photo-content" id="img-1">
-                </div>
+        <div class="gallery">
+            <div class="spot pion" onclick="gra(1)">
+                <div class="nail"></div>
+                <div class="placeholder" id="p1">Otwórz pierwsze okno</div>
+                <div class="frame" id="f1"><img src="fotka1.jpg" class="photo" id="img1"></div>
             </div>
 
-            <div class="spot shape-landscape" onclick="idzDoGry(2)">
-                <div class="dashed-box" id="dash-2">
-                    Odblokuj drugi obraz
-                </div>
-                <div class="ornate-frame" id="frame-2">
-                    <img src="fotka2.jpg" class="photo-content" id="img-2">
-                </div>
+            <div class="spot poziom" onclick="gra(2)">
+                <div class="nail"></div>
+                <div class="placeholder" id="p2">Odkryj drugą chwilę</div>
+                <div class="frame" id="f2"><img src="fotka2.jpg" class="photo" id="img2"></div>
             </div>
 
-            <div class="spot shape-square" onclick="idzDoGry(3)">
-                <div class="dashed-box" id="dash-3">
-                    Odblokuj trzeci obraz
-                </div>
-                <div class="ornate-frame" id="frame-3">
-                    <img src="fotka3.jpg" class="photo-content" id="img-3">
-                </div>
+            <div class="spot kwadrat" onclick="gra(3)">
+                <div class="nail"></div>
+                <div class="placeholder" id="p3">Zajrzyj tutaj</div>
+                <div class="frame" id="f3"><img src="fotka3.jpg" class="photo" id="img3"></div>
             </div>
 
-            <div class="spot shape-oval" onclick="idzDoGry(4)">
-                <div class="dashed-box" id="dash-4">
-                    Odblokuj czwarty obraz
-                </div>
-                <div class="ornate-frame" id="frame-4">
-                    <img src="fotka4.jpg" class="photo-content" id="img-4">
-                </div>
+            <div class="spot owal" onclick="gra(4)">
+                <div class="nail"></div>
+                <div class="placeholder" id="p4">Czwarta tajemnica</div>
+                <div class="frame" id="f4"><img src="fotka4.jpg" class="photo" id="img4"></div>
             </div>
 
-            <div class="spot shape-landscape" onclick="idzDoGry(5)">
-                <div class="dashed-box" id="dash-5">
-                    Odblokuj piąty obraz
-                </div>
-                <div class="ornate-frame" id="frame-5">
-                    <img src="fotka5.jpg" class="photo-content" id="img-5">
-                </div>
+            <div class="spot poziom" onclick="gra(5)">
+                <div class="nail"></div>
+                <div class="placeholder" id="p5">Wielki finał</div>
+                <div class="frame" id="f5"><img src="fotka5.jpg" class="photo" id="img5"></div>
             </div>
-
         </div>
 
-        <div style="text-align: center;">
-            <button id="pdf-btn" onclick="generujPDF()">🎁 Pobierz Wspomnienia (PDF)</button>
+        <div id="pdf-container">
+            <button class="btn-pdf" onclick="generatePDF()">Zapisz nasze wspomnienia (PDF)</button>
         </div>
-
     </div>
 
-    <button id="reset-btn" onclick="resetuj()">RESET</button>
+    <button id="reset-btn" onclick="reset()">Resetuj postęp</button>
 
     <script>
-        // --- LOGIKA ---
-        
-        // Sprawdzanie stanu gier przy uruchomieniu
         document.addEventListener("DOMContentLoaded", () => {
-            let wygraneLicznik = 0;
-
+            let winCount = 0;
             for (let i = 1; i <= 5; i++) {
                 if (localStorage.getItem('wygrana' + i) === 'tak') {
-                    pokazObraz(i);
-                    wygraneLicznik++;
+                    unlock(i);
+                    winCount++;
                 }
             }
-
-            // Jeśli wszystkie 5 gier wygranych, pokaż przycisk PDF
-            if (wygraneLicznik === 5) {
-                document.getElementById('pdf-btn').style.display = 'inline-block';
-            }
+            if(winCount === 5) document.getElementById('pdf-container').style.display = 'block';
         });
 
-        function pokazObraz(nr) {
-            // Ukryj przerywaną linię
-            const dash = document.getElementById('dash-' + nr);
-            if(dash) dash.style.display = 'none';
-            
-            // Pokaż ramę
-            const frame = document.getElementById('frame-' + nr);
-            if(frame) frame.style.display = 'block';
-            
-            // Zablokuj klikanie (żeby nie wchodzić do gry po wygranej)
-            const parent = frame.parentElement;
-            parent.onclick = () => {
-                // Tu możemy dodać np. powiększanie zdjęcia w przyszłości
-                console.log("Obraz już odblokowany");
-            };
-            parent.style.cursor = 'default';
+        function unlock(nr) {
+            document.getElementById('p' + nr).style.display = 'none';
+            document.getElementById('f' + nr).style.display = 'block';
+            document.getElementById('f' + nr).parentElement.onclick = null;
         }
 
-        function idzDoGry(nr) {
-            // Sprawdź czy gra nie jest już wygrana
-            if (localStorage.getItem('wygrana' + nr) !== 'tak') {
-                console.log("Przechodzę do gry numer: " + nr);
-                window.location.href = 'gra' + nr + '.html';
-            }
+        function gra(nr) {
+            window.location.href = 'gra' + nr + '.html';
         }
 
-        function resetuj() {
-            if(confirm("Czy na pewno chcesz zresetować cały postęp?")) {
-                localStorage.clear();
-                location.reload();
-            }
+        function reset() {
+            if(confirm("Zresetować?")) { localStorage.clear(); location.reload(); }
         }
 
-        // --- GENEROWANIE PDF ---
-        async function generujPDF() {
+        async function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
             doc.setFont("times", "italic");
-            doc.setFontSize(24);
             doc.text("Nasza Kolekcja Wspomnień", 105, 20, null, null, "center");
             
-            doc.setFontSize(12);
-            doc.text("Dla mojej Walentynki ❤️", 105, 30, null, null, "center");
-
-            let yPos = 50;
-
-            // Pobieramy obrazy i dodajemy do PDF
+            // To uproszczony generator - doda tylko te zdjęcia, które są w folderze
             for (let i = 1; i <= 5; i++) {
-                const imgElement = document.getElementById('img-' + i);
-                
-                // Sprawdzamy, czy zdjęcie się załadowało (czy nie jest puste)
-                if (imgElement.complete && imgElement.naturalHeight !== 0) {
-                    try {
-                        // Dodajemy obraz do PDF
-                        // Parametry: data obrazu, typ, x, y, szerokość, wysokość
-                        doc.addImage(imgElement, "JPEG", 55, yPos, 100, 75); // Ustawiamy stały rozmiar w PDF
-                        yPos += 85; // Przesuwamy w dół dla kolejnego zdjęcia
-
-                        // Jeśli brakuje miejsca na stronie, dodaj nową
-                        if (yPos > 250 && i < 5) {
-                            doc.addPage();
-                            yPos = 20;
-                        }
-                    } catch (e) {
-                        console.error("Błąd dodawania zdjęcia do PDF", e);
-                    }
-                } else {
-                    doc.text(`[Miejsce na zdjęcie nr ${i}]`, 105, yPos + 40, null, null, "center");
-                    yPos += 85;
+                const img = document.getElementById('img' + i);
+                if (img.complete && img.naturalHeight !== 0) {
+                    doc.addImage(img, 'JPEG', 50, 30 + (i * 40), 100, 70);
                 }
             }
-
             doc.save("Nasze_Wspomnienia.pdf");
         }
     </script>
