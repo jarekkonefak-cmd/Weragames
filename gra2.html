@@ -1,1 +1,208 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra 2: Nasze Wspomnienia</title>
+    <style>
+        body {
+            background-color: #2c0000;
+            color: #ffd700;
+            font-family: 'Verdana', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
 
+        h2 { margin-bottom: 10px; }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 karty w rzędzie */
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .card {
+            width: 70px;
+            height: 100px;
+            background-color: #ffd700; /* Kolor zakrytej karty */
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .card.flipped {
+            background-color: #fff; /* Kolor odkrytej karty */
+            transform: rotateY(180deg);
+        }
+        
+        /* Ukrywamy treść, jeśli karta nie jest odwrócona */
+        .card-content {
+            display: none;
+        }
+        
+        .card.flipped .card-content {
+            display: block;
+            transform: rotateY(180deg); /* Odkręcamy treść z powrotem */
+        }
+
+        .matched {
+            background-color: #88ff88 !important; /* Zielony kolor jak trafisz parę */
+            cursor: default;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            height: 30px;
+        }
+
+        a {
+            color: #ffd700;
+            margin-top: 20px;
+            text-decoration: none;
+            border: 1px solid #ffd700;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Znajdź pary! ❤️</h2>
+    <div id="message">Szukaj par...</div>
+
+    <div class="game-board" id="board">
+        </div>
+
+    <a href="index.html">Poddaję się (Wróć)</a>
+
+    <script>
+        // TU ZDEFINIUJ PARY
+        // Teraz są to emoji. Jak będziesz miał zdjęcia, wpisz tu:
+        // '<img src="fotka1.jpg" width="50">', itd.
+        const items = [
+            '❤️', '❤️',
+            '🌹', '🌹',
+            '💍', '💍',
+            '💋', '💋',
+            '😻', '😻',
+            '🎁', '🎁'
+        ];
+
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let matchesFound = 0;
+        const totalPairs = items.length / 2;
+
+        // Mieszanie kart (Algorytm Fisher-Yates)
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createBoard() {
+            const board = document.getElementById('board');
+            const shuffledItems = shuffle(items);
+
+            shuffledItems.forEach((item) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                
+                // Tworzymy wnętrze karty
+                const content = document.createElement('div');
+                content.classList.add('card-content');
+                content.innerHTML = item; // Tu wstawia się emoji lub zdjęcie
+                
+                card.appendChild(content);
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return; // Nie można kliknąć tej samej karty 2 razy
+
+            this.classList.add('flipped');
+
+            if (!firstCard) {
+                // Pierwsze kliknięcie
+                firstCard = this;
+                return;
+            }
+
+            // Drugie kliknięcie
+            secondCard = this;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            // Sprawdzamy czy treść w środku jest taka sama
+            let isMatch = firstCard.innerHTML === secondCard.innerHTML;
+
+            if (isMatch) {
+                disableCards();
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            
+            // Czyścimy zmienne
+            resetBoard();
+            
+            matchesFound++;
+            if (matchesFound === totalPairs) {
+                setTimeout(() => {
+                    gameWon();
+                }, 500);
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true; // Blokujemy klikanie innych kart
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1000); // Czas na zapamiętanie (1 sekunda)
+        }
+
+        function resetBoard() {
+            [firstCard, secondCard] = [null, null];
+            lockBoard = false;
+        }
+
+        function gameWon() {
+            document.getElementById('message').innerText = "Wygrałaś! Kocham Cię!";
+            
+            // ZAPISUJEMY WYNIK DLA MUZEUM
+            localStorage.setItem('wygrana2', 'tak');
+            
+            setTimeout(() => {
+                alert("Brawo! Kolejne wspomnienie odblokowane!");
+                window.location.href = 'index.html';
+            }, 500);
+        }
+
+        // Start gry
+        createBoard();
+
+    </script>
+</body>
+</html>
