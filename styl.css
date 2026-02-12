@@ -1,1 +1,145 @@
+body {
+    background-color: #2b1d1d; /* Ciemne eleganckie tło */
+    background-image: radial-gradient(circle, #422a2a 0%, #1a0f0f 100%); /* Efekt światła na ścianie */
+    color: #f0e6d2;
+    font-family: 'Playfair Display', serif; /* Elegancka czcionka */
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    text-align: center;
+}
 
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+    color: #eebb55; /* Złoty tekst */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.wall {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding-bottom: 50px;
+}
+
+/* --- MIEJSCE NA ŚCIANIE --- */
+.spot {
+    position: relative;
+    width: 200px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+}
+
+/* --- GWÓŹDŹ (Element stały) --- */
+.nail {
+    width: 12px;
+    height: 12px;
+    background: #888;
+    border-radius: 50%;
+    box-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+    position: absolute;
+    top: 0;
+    z-index: 10; /* Gwóźdź zawsze na wierzchu */
+}
+
+/* --- KARTA Z NUMEREM GRY (Przed wygraną) --- */
+.hanging-tag {
+    cursor: pointer;
+    position: absolute;
+    top: 6px; /* Zaczyna się pod gwoździem */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.hanging-tag:hover {
+    transform: rotate(5deg) scale(1.1); /* Lekkie bujnięcie przy najechaniu */
+}
+
+.string {
+    width: 2px;
+    height: 60px; /* Długość sznurka */
+    background: #d4c5a6; /* Kolor sznurka */
+}
+
+.tag-paper {
+    background: #fdfbf7;
+    color: #333;
+    padding: 15px 20px;
+    border-radius: 2px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    text-align: center;
+    border: 1px solid #ddd;
+    transform-origin: top center;
+}
+
+.tag-paper span {
+    display: block;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #8b0000;
+}
+
+/* --- OBRAZ W RAMIE (Po wygranej) --- */
+.hanging-frame {
+    position: absolute;
+    top: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: swing 2s ease-out; /* Animacja zawieszenia */
+}
+
+.wire {
+    width: 0;
+    height: 0;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 40px solid #555; /* Trójkątna linka */
+    opacity: 0.7;
+    margin-bottom: -2px;
+}
+
+.gold-frame {
+    width: 180px;
+    height: 240px;
+    background: #000;
+    border: 10px solid #eebb55; /* Złoty kolor */
+    /* Złoty gradient na ramce */
+    border-image: linear-gradient(45deg, #b88a44, #eebb55, #8a6e34, #eebb55) 1;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.6); /* Cień rzucany na ścianę */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.gold-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Animacja wieszania obrazu */
+@keyframes swing {
+    0% { transform: rotate(10deg); }
+    50% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Na telefonach układamy jedno pod drugim */
+@media (max-width: 600px) {
+    .wall {
+        gap: 20px;
+    }
+    .spot {
+        height: 280px; /* Troszkę mniej miejsca na pion */
+    }
+}
