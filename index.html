@@ -11,11 +11,8 @@
         :root {
             --bg-wall: #e0dcd5;
             --box-bg: #f9f7f2;
-            --wood-dark: #5c4033;
-            --wood-light: #8b5a2b;
             --gold: #d4af37;
             --gold-shine: #fcf6ba;
-            --shadow: rgba(0, 0, 0, 0.25);
         }
 
         body {
@@ -29,7 +26,6 @@
             align-items: center;
             justify-content: center;
             overflow-x: hidden;
-            perspective: 1000px; /* Kluczowe dla efektu 3D */
         }
 
         /* TŁO Z PYŁEM */
@@ -57,7 +53,7 @@
             100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
         }
 
-        /* GŁÓWNE PUDEŁKO 3D */
+        /* GŁÓWNE PUDEŁKO (STATYCZNE) */
         .shadow-box {
             width: 90%;
             max-width: 500px;
@@ -65,8 +61,6 @@
             padding: 40px 20px;
             margin: 20px 0;
             position: relative;
-            transform-style: preserve-3d; /* Ważne */
-            transition: transform 0.1s ease-out; /* Płynność ruchu */
             
             /* Rama drewniana */
             border: 20px solid #fff;
@@ -74,9 +68,10 @@
             border-image-source: linear-gradient(to bottom right, #e6dec8, #fff);
             border-image-slice: 1;
             
+            /* Statyczny cień dający głębię */
             box-shadow: 
-                0 30px 60px rgba(0,0,0,0.3), /* Cień zewnętrzny */
-                inset 0 0 80px rgba(139, 90, 43, 0.1); /* Cień wewnętrzny */
+                0 20px 50px rgba(0,0,0,0.3), 
+                inset 0 0 80px rgba(139, 90, 43, 0.1);
         }
 
         /* Oświetlenie */
@@ -91,7 +86,6 @@
         header {
             text-align: center;
             margin-bottom: 40px;
-            transform: translateZ(20px); /* Tekst odstaje od tła */
         }
 
         h1 {
@@ -122,8 +116,7 @@
         .spot {
             position: relative;
             cursor: pointer;
-            transition: transform 0.3s;
-            transform-style: preserve-3d;
+            transition: transform 0.2s;
         }
 
         .spot:hover { transform: scale(1.02); }
@@ -135,8 +128,8 @@
             border-radius: 50%;
             position: absolute;
             top: -25px; left: 50%;
-            transform: translateX(-50%) translateZ(10px);
-            box-shadow: 2px 5px 5px rgba(0,0,0,0.4);
+            transform: translateX(-50%);
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.4);
             z-index: 10;
         }
 
@@ -168,7 +161,7 @@
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* STAN 2: RAMA (Animowana) */
+        /* STAN 2: RAMA (Kołysząca się) */
         .frame {
             width: 100%; height: 100%;
             display: none; /* Domyślnie ukryte */
@@ -180,8 +173,8 @@
             border: 4px solid var(--gold);
             outline: 2px solid #8a6e34;
             box-shadow: 
-                0 15px 35px rgba(0,0,0,0.4), /* Cień rzucany na tył pudełka */
-                inset 0 0 20px rgba(0,0,0,0.2); /* Cień wewnątrz ramy */
+                0 10px 20px rgba(0,0,0,0.3),
+                inset 0 0 10px rgba(0,0,0,0.1); 
 
             /* Animacja kołysania */
             transform-origin: top center;
@@ -197,7 +190,7 @@
             width: 100%; height: 100%;
             object-fit: cover;
             display: block;
-            filter: sepia(10%); /* Lekki filtr retro */
+            filter: sepia(10%);
         }
 
         /* Kształty */
@@ -214,7 +207,7 @@
         #pdf-container {
             margin-top: 40px;
             display: none;
-            transform: translateZ(30px);
+            text-align: center;
         }
 
         .btn-magic {
@@ -228,7 +221,6 @@
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
-            transition: transform 0.2s;
             animation: pulse 2s infinite;
         }
         
@@ -263,50 +255,35 @@
             <div class="spot portrait" onclick="gra(1)">
                 <div class="nail"></div>
                 <div class="string-left"></div><div class="string-right"></div>
-                
-                <div class="placeholder" id="p1">
-                    <span style="font-size:2rem;">❤️</span><br>Złap moją miłość
-                </div>
+                <div class="placeholder" id="p1"><span style="font-size:2rem;">❤️</span><br>Złap moją miłość</div>
                 <div class="frame" id="f1"><img src="fotka1.jpg" id="img1"></div>
             </div>
 
             <div class="spot landscape" onclick="gra(2)">
                 <div class="nail"></div>
                 <div class="string-left"></div><div class="string-right"></div>
-
-                <div class="placeholder" id="p2">
-                    <span style="font-size:2rem;">✨</span><br>Znajdź pary
-                </div>
+                <div class="placeholder" id="p2"><span style="font-size:2rem;">✨</span><br>Znajdź pary</div>
                 <div class="frame" id="f2"><img src="fotka2.jpg" id="img2"></div>
             </div>
 
             <div class="spot square" onclick="gra(3)">
                 <div class="nail"></div>
                 <div class="string-left"></div><div class="string-right"></div>
-
-                <div class="placeholder" id="p3">
-                    <span style="font-size:2rem;">🏹</span><br>Leć do celu
-                </div>
+                <div class="placeholder" id="p3"><span style="font-size:2rem;">🏹</span><br>Leć do celu</div>
                 <div class="frame" id="f3"><img src="fotka3.jpg" id="img3"></div>
             </div>
 
             <div class="spot oval" onclick="gra(4)">
                 <div class="nail"></div>
                 <div class="string-left"></div>
-
-                <div class="placeholder" id="p4">
-                    <span style="font-size:2rem;">🧩</span><br>Ułóż nas w całość
-                </div>
+                <div class="placeholder" id="p4"><span style="font-size:2rem;">🧩</span><br>Ułóż nas w całość</div>
                 <div class="frame" id="f4"><img src="fotka4.jpg" id="img4"></div>
             </div>
 
             <div class="spot landscape" onclick="gra(5)">
                 <div class="nail"></div>
                 <div class="string-left"></div><div class="string-right"></div>
-
-                <div class="placeholder" id="p5">
-                    <span style="font-size:2rem;">🌟</span><br>Połącz gwiazdy
-                </div>
+                <div class="placeholder" id="p5"><span style="font-size:2rem;">🌟</span><br>Połącz gwiazdy</div>
                 <div class="frame" id="f5"><img src="fotka5.jpg" id="img5"></div>
             </div>
 
@@ -320,9 +297,9 @@
     <button id="reset-btn" onclick="reset()">Zresetuj wszystko</button>
 
     <script>
-        // --- 1. GENEROWANIE PYŁU (PARTICLES) ---
+        // --- 1. PYŁ ---
         const dustContainer = document.getElementById('dust-container');
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 20; i++) {
             const speck = document.createElement('div');
             speck.classList.add('dust-speck');
             speck.style.left = Math.random() * 100 + 'vw';
@@ -333,25 +310,9 @@
             dustContainer.appendChild(speck);
         }
 
-        // --- 2. EFEKT 3D (PARALLAX TILT) ---
-        const box = document.getElementById('box');
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.pageX) / 50; // Czułość X
-            const y = (window.innerHeight / 2 - e.pageY) / 50; // Czułość Y
-            box.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-        });
-
-        // Obsługa żyroskopu na telefonie (opcjonalnie, jeśli przeglądarka pozwoli)
-        window.addEventListener('deviceorientation', (e) => {
-            const x = e.gamma / 5; // Przechył lewo/prawo
-            const y = e.beta / 5;  // Przechył przód/tył
-            box.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-        });
-
-        // --- 3. LOGIKA GRY ---
+        // --- 2. LOGIKA GRY ---
         document.addEventListener("DOMContentLoaded", () => {
-            // Uwaga: Domyślnie NIE resetujemy tutaj, żeby można było zebrać 5 obrazów
-            // Jeśli chcesz reset przy każdym odświeżeniu, odkomentuj poniższą pętlę:
+            // Opcjonalnie: odkomentuj, by resetować przy każdym odświeżeniu
             /*
             for (let i = 1; i <= 5; i++) {
                 localStorage.removeItem('wygrana' + i);
@@ -372,39 +333,35 @@
             document.getElementById('p' + nr).style.display = 'none';
             document.getElementById('f' + nr).style.display = 'block';
             
-            // Po odblokowaniu kliknięcie tylko powiększa zdjęcie (opcjonalnie)
-            // lub wyłączamy klikanie:
+            // Wyłączamy klikanie po odblokowaniu
             const spot = document.getElementById('f' + nr).parentElement;
             spot.onclick = null; 
             spot.style.cursor = "default";
         }
 
         function gra(nr) {
-            // Przechodzimy do gry tylko jeśli nie jest wygrana
             if (localStorage.getItem('wygrana' + nr) !== 'tak') {
                 window.location.href = 'gra' + nr + '.html';
             }
         }
 
         function reset() {
-            if(confirm("Czy na pewno chcesz wyczyścić całą galerię i zacząć od nowa?")) {
+            if(confirm("Czy na pewno chcesz wyczyścić postęp?")) {
                 localStorage.clear();
                 location.reload();
             }
         }
 
-        // --- 4. GENERATOR PDF (KOLAŻ) ---
+        // --- 3. GENERATOR PDF ---
         async function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Tło PDF (kremowe)
             doc.setFillColor(253, 251, 247);
             doc.rect(0, 0, 210, 297, 'F');
 
-            // Tytuł
             doc.setFont("times", "bolditalic");
-            doc.setTextColor(212, 175, 55); // Złoty
+            doc.setTextColor(212, 175, 55);
             doc.setFontSize(30);
             doc.text("Nasza Kolekcja Wspomnień", 105, 30, null, null, "center");
             
@@ -412,26 +369,21 @@
             doc.setTextColor(100);
             doc.text("Dla mojej Walentynki ❤️", 105, 45, null, null, "center");
 
-            // Dodawanie zdjęć w układzie kolażu
-            // Pozycje: x, y, width, height
             const layout = [
-                {x: 20, y: 60, w: 80, h: 60},  // Lewa góra
-                {x: 110, y: 60, w: 80, h: 60}, // Prawa góra
-                {x: 20, y: 130, w: 80, h: 80}, // Lewy środek (kwadrat)
-                {x: 110, y: 130, w: 80, h: 80},// Prawy środek (owal/kwadrat)
-                {x: 65, y: 220, w: 80, h: 60}  // Dół środek
+                {x: 20, y: 60, w: 80, h: 60},  
+                {x: 110, y: 60, w: 80, h: 60}, 
+                {x: 20, y: 130, w: 80, h: 80}, 
+                {x: 110, y: 130, w: 80, h: 80},
+                {x: 65, y: 220, w: 80, h: 60}  
             ];
 
             for (let i = 1; i <= 5; i++) {
                 const img = document.getElementById('img' + i);
                 if (img.complete && img.naturalHeight !== 0) {
                     try {
-                        // Dodaj ramkę
                         doc.setDrawColor(212, 175, 55);
                         doc.setLineWidth(1);
                         doc.rect(layout[i-1].x - 2, layout[i-1].y - 2, layout[i-1].w + 4, layout[i-1].h + 4);
-                        
-                        // Dodaj zdjęcie
                         doc.addImage(img, 'JPEG', layout[i-1].x, layout[i-1].y, layout[i-1].w, layout[i-1].h);
                     } catch(e) { console.log(e); }
                 }
