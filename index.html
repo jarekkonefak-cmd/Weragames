@@ -7,165 +7,173 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     
     <style>
-        /* --- OGÓLNE USTAWIENIA --- */
+        /* --- RESET I BAZA --- */
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             padding: 0;
-            height: 100vh;
             background-color: #111;
-            overflow: hidden;
             font-family: 'Playfair Display', serif;
+            /* Na telefonie pozwalamy scrollować, na PC blokujemy */
+            overflow-x: hidden; 
+            overflow-y: auto; 
+        }
+
+        /* --- KONTENER POKOJU 3D --- */
+        .room-container {
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            perspective: 1000px; /* Głębia 3D */
+            overflow: hidden;
             display: flex;
-            align-items: center;
             justify-content: center;
         }
 
-        /* --- POKÓJ 3D --- */
-        .room-container {
-            width: 100vw;
-            height: 100vh;
-            perspective: 1000px; /* Głębokość perspektywy */
-            position: relative;
-            overflow: hidden;
-        }
-
+        /* --- POKÓJ --- */
         .room {
             width: 100%;
             height: 100%;
             position: absolute;
             transform-style: preserve-3d;
-            transform: rotateX(5deg); /* Lekkie spojrzenie z góry */
+            /* Patrzymy lekko z góry */
+            transform: rotateX(2deg); 
         }
 
-        /* ŚCIANA */
+        /* --- ŚCIANA (Tło) --- */
         .wall {
             position: absolute;
-            width: 140%; /* Szersza niż ekran, żeby nie było widać brzegów */
-            height: 85vh;
-            left: -20%;
+            width: 120%; /* Szersza żeby nie było widać boków */
+            min-height: 100vh; /* Rozciąga się na wysokość */
+            left: -10%;
             top: 0;
-            /* Kolor ściany jak na Twoim zdjęciu */
-            background: linear-gradient(to bottom, #5a7d9c, #7396b5 40%, #8fb2d1);
-            box-shadow: inset 0 50px 100px rgba(0,0,0,0.5);
+            /* Niebieski gradient jak na zdjęciu */
+            background: linear-gradient(to bottom, #6b8cba, #8fb2d1 50%, #a8c4e0);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 10px;
-            transform: translateZ(-200px);
+            padding-bottom: 100px; /* Miejsce na dole */
+            transform: translateZ(-100px); /* Odsunięcie w głąb */
+            z-index: 1; /* Podłoga będzie pod tym */
         }
 
-        /* PODŁOGA */
+        /* Listwa przysufitowa */
+        .molding-top {
+            width: 100%;
+            height: 25px;
+            background: linear-gradient(to bottom, #fff, #ddd);
+            border-bottom: 4px solid #888;
+            margin-bottom: 20px;
+        }
+
+        /* --- PODŁOGA --- */
+        /* Na telefonach podłoga jest mniej ważna, robimy ją jako tło na dole */
         .floor {
-            position: absolute;
-            top: 85vh;
-            width: 140%;
-            height: 60vh;
-            left: -20%;
+            position: fixed; /* Przyklejona do dołu */
+            bottom: 0;
+            left: -10%;
+            width: 120%;
+            height: 30vh;
             background-color: #c2a370;
             /* Wzór parkietu */
             background-image: 
-                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px),
-                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
-            box-shadow: inset 0 20px 50px rgba(0,0,0,0.6);
-            transform: rotateX(85deg) translateZ(-200px);
-            transform-origin: top;
+                repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 40px),
+                repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 40px);
+            transform: rotateX(60deg) translateY(50px);
+            z-index: 0; /* Za ścianą */
+            opacity: 0.8;
+            pointer-events: none; /* Żeby nie zasłaniała kliknięć */
         }
 
-        .molding-top {
-            position: absolute;
-            top: -10px;
-            width: 100%;
-            height: 15px;
-            background: #eee;
-            border-bottom: 3px solid #999;
-        }
-
+        /* --- TYTUŁ --- */
         h1 {
             font-family: 'Cinzel Decorative', cursive;
-            color: #fadd75;
-            font-size: 2.5rem; /* Mniejsza czcionka na start */
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            margin: 10px 0 20px 0;
+            color: #fceeb5; /* Jasne złoto */
+            font-size: 2.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+            margin: 10px 0 30px 0;
             text-align: center;
             z-index: 10;
         }
 
-        /* --- UKŁAD GALERII --- */
+        /* --- GALERIA (Grid) --- */
         .gallery-grid {
             display: flex;
-            flex-wrap: wrap; /* Pozwala zawijać elementy do nowej linii */
+            flex-wrap: wrap;
             justify-content: center;
-            align-items: center; /* Wyrównanie w pionie */
-            gap: 30px; /* Odstępy między obrazami */
-            max-width: 900px;
+            align-items: center; /* Centrowanie w pionie */
+            gap: 40px;
+            max-width: 1200px;
             padding: 20px;
+            z-index: 20; /* Najważniejsze - nad podłogą */
+            position: relative;
         }
 
-        /* POJEDYNCZE MIEJSCE NA OBRAZ */
+        /* --- POJEDYNCZE MIEJSCE (SPOT) --- */
         .spot {
             position: relative;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: transform 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-        
-        .spot:hover {
-            transform: scale(1.05);
+            /* To naprawia klikanie: */
+            pointer-events: auto; 
+            z-index: 50; 
         }
 
-        /* RÓŻNE ROZMIARY I KSZTAŁTY (KLASY) */
-        .shape-portrait { width: 130px; height: 180px; } /* Pionowy */
-        .shape-landscape { width: 180px; height: 130px; } /* Poziomy */
-        .shape-square { width: 150px; height: 150px; } /* Kwadrat */
-        .shape-oval { width: 140px; height: 170px; border-radius: 50%; } /* Owalny */
+        .spot:active {
+            transform: scale(0.95); /* Efekt wciśnięcia */
+        }
 
-        /* --- STAN 1: PRZED WYGRANĄ (Przerywana linia + Gwóźdź) --- */
+        /* KSZTAŁTY OBRAZÓW */
+        .shape-portrait { width: 140px; height: 190px; }
+        .shape-landscape { width: 190px; height: 140px; }
+        .shape-square { width: 160px; height: 160px; }
+        .shape-oval { width: 150px; height: 180px; border-radius: 50%; }
+
+        /* --- STAN 1: PUSTE MIEJSCE (LINIA + GWÓŹDŹ) --- */
         .outline-placeholder {
             width: 100%;
             height: 100%;
-            border: 2px dashed rgba(255, 255, 255, 0.4); /* Przerywana linia */
-            border-radius: 5px; /* Lekko zaokrąglone rogi */
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
             position: relative;
             display: flex;
             justify-content: center;
-            /* Domyślnie widoczne */
+            background: rgba(255,255,255,0.05); /* Bardzo delikatne tło żeby łatwiej trafić palcem */
         }
-
-        /* Obsługa owalu dla linii przerywanej */
+        
         .shape-oval .outline-placeholder { border-radius: 50%; }
 
-        /* GWÓŹDŹ */
+        /* Gwóźdź */
         .nail {
-            width: 8px;
-            height: 8px;
-            background: #333;
+            width: 10px;
+            height: 10px;
+            background: #444;
             border-radius: 50%;
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.5);
             position: absolute;
-            top: 15px; /* Gwóźdź jest zawsze u góry */
-            z-index: 5;
+            top: 15px;
         }
 
-        /* --- STAN 2: PO WYGRANEJ (Złota Rama) --- */
+        /* --- STAN 2: RAMA (PO WYGRANEJ) --- */
         .gold-frame {
             width: 100%;
             height: 100%;
+            display: none; /* Domyślnie ukryte */
             background: #000;
             border: 10px solid #eebb55;
-            border-image: linear-gradient(45deg, #b88a44, #eebb55, #8a6e34, #eebb55) 1;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            display: none; /* DOMYŚLNIE UKRYTE! */
+            /* Efekt 3D ramy */
+            border-image: linear-gradient(45deg, #b88a44, #eebb55, #8a6e34, #fff) 1;
+            box-shadow: 5px 10px 15px rgba(0,0,0,0.5);
             overflow: hidden;
-            position: relative;
-            z-index: 10; /* Przykrywa gwóźdź */
         }
-        
-        /* Owalna rama wymaga innej techniki niż border-image */
+
         .shape-oval .gold-frame {
             border-radius: 50%;
-            border: 8px solid #eebb55; /* Prostsza rama dla owalu */
+            border: 8px solid #eebb55;
             border-image: none;
         }
 
@@ -175,47 +183,56 @@
             object-fit: cover;
         }
 
-        /* --- TABLICZKA Z NAZWĄ (Pod spodem) --- */
+        /* --- PODPISY (Tabliczki) --- */
         .plaque {
-            margin-top: 10px;
-            background: rgba(0,0,0,0.3);
-            color: #ddd;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            margin-top: 12px;
+            background: linear-gradient(to bottom, #333, #111);
+            color: #eebb55;
+            padding: 5px 15px;
+            border: 1px solid #777;
+            border-radius: 3px;
+            font-size: 0.85rem;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .spot:hover .plaque {
-            background: #eebb55;
-            color: #000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-family: sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* --- RESPONSYWNOŚĆ NA TELEFON --- */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.5rem; margin-bottom: 10px; }
-            
-            .wall { 
-                height: 90vh; /* Wyższa ściana na telefonie */
-                padding-top: 50px; 
-            }
-            .floor { top: 90vh; }
+        /* --- RESPONSYWNOŚĆ (TELEFON) --- */
+        @media (max-width: 700px) {
+            h1 { font-size: 1.8rem; margin-bottom: 20px; }
             
             .gallery-grid {
-                gap: 15px; /* Mniejsze odstępy */
-                padding-top: 0;
-                /* Skalujemy trochę w dół, żeby zmieścić 5 gier */
-                transform: scale(0.85); 
+                flex-direction: column; /* Układ pionowy na telefonie */
+                gap: 50px; /* Duże odstępy żeby wypełnić ekran */
+                padding-bottom: 150px; /* Miejsce na dole scrolla */
+            }
+
+            /* Powiększamy obrazy na telefonie o 30% */
+            .spot {
+                transform: scale(1.3); 
+                margin: 10px 0;
+            }
+            .spot:active { transform: scale(1.25); }
+
+            /* Układ naprzemienny (Zig-Zag) dla lepszego wyglądu */
+            .spot:nth-child(even) { transform: scale(1.3) rotate(2deg); }
+            .spot:nth-child(odd) { transform: scale(1.3) rotate(-2deg); }
+            
+            .room-container {
+                overflow-y: scroll; /* Włączamy przewijanie na telefonie */
             }
         }
 
+        /* Przycisk resetu */
         #reset-btn {
             position: fixed;
             bottom: 10px;
             right: 10px;
-            opacity: 0.5;
+            opacity: 0.3;
             font-size: 10px;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -223,7 +240,6 @@
 
     <div class="room-container">
         <div class="room">
-            <div class="floor"></div>
             <div class="wall">
                 <div class="molding-top"></div>
                 <h1>Nasza Kolekcja Wspomnień</h1>
@@ -231,63 +247,46 @@
                 <div class="gallery-grid">
 
                     <div class="spot shape-portrait" onclick="idzDoGry(1)">
-                        <div class="outline-placeholder" id="outline-1">
-                            <div class="nail"></div>
-                        </div>
-                        <div class="gold-frame" id="frame-1">
-                            <img src="fotka1.jpg">
-                        </div>
-                        <div class="plaque" id="plaque-1">GRA 1<br><small>Serca</small></div>
+                        <div class="outline-placeholder" id="outline-1"><div class="nail"></div></div>
+                        <div class="gold-frame" id="frame-1"><img src="fotka1.jpg"></div>
+                        <div class="plaque" id="plaque-1">Gra 1<br><small style="color:#fff; text-transform:none;">Serca</small></div>
                     </div>
 
                     <div class="spot shape-landscape" onclick="idzDoGry(2)">
-                        <div class="outline-placeholder" id="outline-2">
-                            <div class="nail"></div>
-                        </div>
-                        <div class="gold-frame" id="frame-2">
-                            <img src="fotka2.jpg">
-                        </div>
-                        <div class="plaque" id="plaque-2">GRA 2<br><small>Pary</small></div>
+                        <div class="outline-placeholder" id="outline-2"><div class="nail"></div></div>
+                        <div class="gold-frame" id="frame-2"><img src="fotka2.jpg"></div>
+                        <div class="plaque" id="plaque-2">Gra 2<br><small style="color:#fff; text-transform:none;">Pary</small></div>
                     </div>
 
                     <div class="spot shape-square" onclick="idzDoGry(3)">
-                        <div class="outline-placeholder" id="outline-3">
-                            <div class="nail"></div>
-                        </div>
-                        <div class="gold-frame" id="frame-3">
-                            <img src="fotka3.jpg">
-                        </div>
-                        <div class="plaque" id="plaque-3">GRA 3<br><small>Quiz</small></div>
+                        <div class="outline-placeholder" id="outline-3"><div class="nail"></div></div>
+                        <div class="gold-frame" id="frame-3"><img src="fotka3.jpg"></div>
+                        <div class="plaque" id="plaque-3">Gra 3<br><small style="color:#fff; text-transform:none;">Quiz</small></div>
                     </div>
 
                     <div class="spot shape-oval" onclick="idzDoGry(4)">
-                        <div class="outline-placeholder" id="outline-4">
-                            <div class="nail"></div>
-                        </div>
-                        <div class="gold-frame" id="frame-4">
-                            <img src="fotka4.jpg">
-                        </div>
-                        <div class="plaque" id="plaque-4">GRA 4<br><small>Puzzle</small></div>
+                        <div class="outline-placeholder" id="outline-4"><div class="nail"></div></div>
+                        <div class="gold-frame" id="frame-4"><img src="fotka4.jpg"></div>
+                        <div class="plaque" id="plaque-4">Gra 4<br><small style="color:#fff; text-transform:none;">Puzzle</small></div>
                     </div>
 
                     <div class="spot shape-landscape" onclick="idzDoGry(5)">
-                        <div class="outline-placeholder" id="outline-5">
-                            <div class="nail"></div>
-                        </div>
-                        <div class="gold-frame" id="frame-5">
-                            <img src="fotka5.jpg">
-                        </div>
-                        <div class="plaque" id="plaque-5">GRA 5<br><small>Sekret</small></div>
+                        <div class="outline-placeholder" id="outline-5"><div class="nail"></div></div>
+                        <div class="gold-frame" id="frame-5"><img src="fotka5.jpg"></div>
+                        <div class="plaque" id="plaque-5">Gra 5<br><small style="color:#fff; text-transform:none;">Sekret</small></div>
                     </div>
 
                 </div>
             </div>
+            
+            <div class="floor"></div>
         </div>
     </div>
 
     <button id="reset-btn" onclick="resetuj()">RESET</button>
 
     <script>
+        // --- LOGIKA ---
         document.addEventListener("DOMContentLoaded", () => {
             for (let i = 1; i <= 5; i++) {
                 if (localStorage.getItem('wygrana' + i) === 'tak') {
@@ -297,28 +296,29 @@
         });
 
         function pokazObraz(nr) {
-            // Ukryj przerywaną linię i gwóźdź
+            // Ukryj obrys i podpis
             document.getElementById('outline-' + nr).style.display = 'none';
-            // Ukryj podpis
             document.getElementById('plaque-' + nr).style.display = 'none';
             
-            // Pokaż złotą ramę
+            // Pokaż ramę
             const frame = document.getElementById('frame-' + nr);
             frame.style.display = 'block';
             
-            // Zmień kursor
-            frame.parentElement.style.cursor = 'default';
-            frame.parentElement.onclick = () => alert("Już zdobyłaś to wspomnienie! ❤️");
+            // Zablokuj klikanie (zmień funkcję rodzica)
+            const parent = frame.parentElement;
+            parent.onclick = () => alert("To piękne wspomnienie jest już Twoje! ❤️");
         }
 
         function idzDoGry(nr) {
+            console.log("Kliknięto grę nr: " + nr); // Diagnostyka w konsoli
+            // Jeśli gra nie wygrana, idziemy do niej
             if (localStorage.getItem('wygrana' + nr) !== 'tak') {
                 window.location.href = 'gra' + nr + '.html';
             }
         }
 
         function resetuj() {
-            if(confirm("Zresetować?")) {
+            if(confirm("Zresetować wszystko?")) {
                 localStorage.clear();
                 location.reload();
             }
