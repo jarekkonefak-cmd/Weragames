@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nasza Galeria</title>
+    <title>Galeria Miłości</title>
     <link rel="stylesheet" href="styl.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -17,18 +16,14 @@
     <div class="wall">
         
         <div class="spot">
-            <div class="nail"></div> <div id="tag-1" class="hanging-tag" onclick="idzDoGry(1)">
+            <div class="nail"></div>
+            <div id="tag-1" class="hanging-tag" onclick="idzDoGry(1)">
                 <div class="string"></div>
-                <div class="tag-paper">
-                    <span>GRA 1</span>
-                    <small>Kliknij</small>
-                </div>
+                <div class="tag-paper"><span>GRA 1</span><small>Serca</small></div>
             </div>
-
-            <div id="frame-1" class="hanging-frame" style="display: none;">
-                <div class="wire"></div> <div class="gold-frame">
-                    <img src="fotka1.jpg" alt="Wspomnienie 1">
-                </div>
+            <div id="frame-1" class="hanging-frame">
+                <div class="wire"></div>
+                <div class="gold-frame"><img src="fotka1.jpg" alt="FOTKA 1"></div>
             </div>
         </div>
 
@@ -36,16 +31,11 @@
             <div class="nail"></div>
             <div id="tag-2" class="hanging-tag" onclick="idzDoGry(2)">
                 <div class="string"></div>
-                <div class="tag-paper">
-                    <span>GRA 2</span>
-                    <small>Kliknij</small>
-                </div>
+                <div class="tag-paper"><span>GRA 2</span><small>Pary</small></div>
             </div>
-            <div id="frame-2" class="hanging-frame" style="display: none;">
+            <div id="frame-2" class="hanging-frame">
                 <div class="wire"></div>
-                <div class="gold-frame">
-                    <img src="fotka2.jpg" alt="Wspomnienie 2">
-                </div>
+                <div class="gold-frame"><img src="fotka2.jpg" alt="FOTKA 2"></div>
             </div>
         </div>
 
@@ -53,16 +43,11 @@
             <div class="nail"></div>
             <div id="tag-3" class="hanging-tag" onclick="idzDoGry(3)">
                 <div class="string"></div>
-                <div class="tag-paper">
-                    <span>GRA 3</span>
-                    <small>Kliknij</small>
-                </div>
+                <div class="tag-paper"><span>GRA 3</span><small>Quiz</small></div>
             </div>
-            <div id="frame-3" class="hanging-frame" style="display: none;">
+            <div id="frame-3" class="hanging-frame">
                 <div class="wire"></div>
-                <div class="gold-frame">
-                    <img src="fotka3.jpg" alt="Wspomnienie 3">
-                </div>
+                <div class="gold-frame"><img src="fotka3.jpg" alt="FOTKA 3"></div>
             </div>
         </div>
 
@@ -70,16 +55,11 @@
             <div class="nail"></div>
             <div id="tag-4" class="hanging-tag" onclick="idzDoGry(4)">
                 <div class="string"></div>
-                <div class="tag-paper">
-                    <span>GRA 4</span>
-                    <small>Kliknij</small>
-                </div>
+                <div class="tag-paper"><span>GRA 4</span><small>Puzzle</small></div>
             </div>
-            <div id="frame-4" class="hanging-frame" style="display: none;">
+            <div id="frame-4" class="hanging-frame">
                 <div class="wire"></div>
-                <div class="gold-frame">
-                    <img src="fotka4.jpg" alt="Wspomnienie 4">
-                </div>
+                <div class="gold-frame"><img src="fotka4.jpg" alt="FOTKA 4"></div>
             </div>
         </div>
 
@@ -87,25 +67,20 @@
             <div class="nail"></div>
             <div id="tag-5" class="hanging-tag" onclick="idzDoGry(5)">
                 <div class="string"></div>
-                <div class="tag-paper">
-                    <span>GRA 5</span>
-                    <small>Kliknij</small>
-                </div>
+                <div class="tag-paper"><span>GRA 5</span><small>Sekret</small></div>
             </div>
-            <div id="frame-5" class="hanging-frame" style="display: none;">
+            <div id="frame-5" class="hanging-frame">
                 <div class="wire"></div>
-                <div class="gold-frame">
-                    <img src="fotka5.jpg" alt="Wspomnienie 5">
-                </div>
+                <div class="gold-frame"><img src="fotka5.jpg" alt="FOTKA 5"></div>
             </div>
         </div>
 
     </div>
 
-    <button onclick="resetuj()" style="margin-top:50px; opacity:0.2; border:none; background:none; color:white;">Reset</button>
+    <button id="reset-btn" onclick="resetuj()">RESETUJ POSTĘP</button>
 
     <script>
-        // SPRAWDZANIE STANU GRY
+        // Ta funkcja sprawdza przy wejściu, co jest wygrane
         document.addEventListener("DOMContentLoaded", () => {
             for (let i = 1; i <= 5; i++) {
                 if (localStorage.getItem('wygrana' + i) === 'tak') {
@@ -115,10 +90,13 @@
         });
 
         function pokazObraz(nr) {
-            // Ukryj karteczkę
-            document.getElementById('tag-' + nr).style.display = 'none';
-            // Pokaż obraz
-            document.getElementById('frame-' + nr).style.display = 'block';
+            // Ukrywamy karteczkę
+            const tag = document.getElementById('tag-' + nr);
+            if(tag) tag.style.display = 'none';
+            
+            // Pokazujemy obraz
+            const frame = document.getElementById('frame-' + nr);
+            if(frame) frame.style.display = 'block';
         }
 
         function idzDoGry(nr) {
@@ -126,8 +104,8 @@
         }
 
         function resetuj() {
-            localStorage.clear();
-            location.reload();
+            localStorage.clear(); // Czyści pamięć przeglądarki
+            location.reload();    // Odświeża stronę
         }
     </script>
 </body>
