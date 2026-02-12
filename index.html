@@ -1,1 +1,47 @@
 
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Gra 1</title>
+    <link rel="stylesheet" href="styl.css">
+    <style>
+        /* Styl specyficzny tylko dla tej gry */
+        #game-area { 
+            width: 300px; 
+            height: 300px; 
+            background: pink; 
+            margin: 0 auto; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        button { padding: 15px; font-size: 20px; background: red; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>Złap moje serce! (Testowa Gra)</h2>
+    <p>Kliknij przycisk, żeby wygrać (to tylko test mechanizmu)</p>
+
+    <div id="game-area">
+        <button onclick="wygrana()">KLIKNIJ MNIE ❤️</button>
+    </div>
+
+    <br>
+    <a href="index.html" style="color: white;">&larr; Wróć do muzeum (Poddaję się)</a>
+
+    <script>
+        function wygrana() {
+            // To jest kluczowy moment!
+            // Zapisujemy w przeglądarce, że gra nr 1 jest zaliczona
+            localStorage.setItem('wygrana1', 'tak');
+            
+            alert("Brawo! Wygrałaś pierwsze zdjęcie!");
+            
+            // Wracamy do muzeum
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
