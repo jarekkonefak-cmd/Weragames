@@ -1,8 +1,10 @@
+/* PLIK: styl.css */
+
 body {
-    background-color: #2b1d1d; /* Ciemne eleganckie tło */
-    background-image: radial-gradient(circle, #422a2a 0%, #1a0f0f 100%); /* Efekt światła na ścianie */
+    background-color: #2b1d1d; /* Ciemne tło */
+    background-image: radial-gradient(circle, #422a2a 0%, #1a0f0f 100%);
     color: #f0e6d2;
-    font-family: 'Playfair Display', serif; /* Elegancka czcionka */
+    font-family: 'Georgia', serif; /* Elegancka czcionka szeryfowa */
     margin: 0;
     padding: 20px;
     min-height: 100vh;
@@ -14,6 +16,7 @@ body {
     margin-bottom: 5px;
     color: #eebb55; /* Złoty tekst */
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    letter-spacing: 2px;
 }
 
 .wall {
@@ -22,7 +25,7 @@ body {
     justify-content: center;
     gap: 40px;
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 60px auto; /* Większy odstęp od góry */
     padding-bottom: 50px;
 }
 
@@ -35,23 +38,23 @@ body {
     justify-content: center;
 }
 
-/* --- GWÓŹDŹ (Element stały) --- */
+/* --- GWÓŹDŹ (Zawsze widoczny) --- */
 .nail {
     width: 12px;
     height: 12px;
-    background: #888;
+    background: #555;
     border-radius: 50%;
-    box-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+    box-shadow: 1px 1px 2px black;
     position: absolute;
     top: 0;
-    z-index: 10; /* Gwóźdź zawsze na wierzchu */
+    z-index: 10;
 }
 
-/* --- KARTA Z NUMEREM GRY (Przed wygraną) --- */
+/* --- KARTECZKA Z NUMEREM GRY (Przed wygraną) --- */
 .hanging-tag {
     cursor: pointer;
     position: absolute;
-    top: 6px; /* Zaczyna się pod gwoździem */
+    top: 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -59,13 +62,13 @@ body {
 }
 
 .hanging-tag:hover {
-    transform: rotate(5deg) scale(1.1); /* Lekkie bujnięcie przy najechaniu */
+    transform: rotate(5deg) scale(1.1); /* Efekt bujania */
 }
 
 .string {
     width: 2px;
-    height: 60px; /* Długość sznurka */
-    background: #d4c5a6; /* Kolor sznurka */
+    height: 60px;
+    background: #d4c5a6; /* Jasny sznurek */
 }
 
 .tag-paper {
@@ -76,14 +79,13 @@ body {
     box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
     text-align: center;
     border: 1px solid #ddd;
-    transform-origin: top center;
 }
 
 .tag-paper span {
     display: block;
     font-weight: bold;
     font-size: 1.2rem;
-    color: #8b0000;
+    color: #8b0000; /* Bordowy napis */
 }
 
 /* --- OBRAZ W RAMIE (Po wygranej) --- */
@@ -93,7 +95,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    animation: swing 2s ease-out; /* Animacja zawieszenia */
+    animation: swing 2s ease-out; /* Animacja wieszania */
+    display: none; /* Domyślnie ukryte */
 }
 
 .wire {
@@ -101,8 +104,8 @@ body {
     height: 0;
     border-left: 60px solid transparent;
     border-right: 60px solid transparent;
-    border-bottom: 40px solid #555; /* Trójkątna linka */
-    opacity: 0.7;
+    border-bottom: 40px solid #444; /* Ciemna linka */
+    opacity: 0.8;
     margin-bottom: -2px;
 }
 
@@ -110,15 +113,14 @@ body {
     width: 180px;
     height: 240px;
     background: #000;
-    border: 10px solid #eebb55; /* Złoty kolor */
-    /* Złoty gradient na ramce */
+    border: 10px solid #eebb55;
+    /* Efekt złotej ramki */
     border-image: linear-gradient(45deg, #b88a44, #eebb55, #8a6e34, #eebb55) 1;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.6); /* Cień rzucany na ścianę */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    position: relative;
 }
 
 .gold-frame img {
@@ -127,19 +129,22 @@ body {
     object-fit: cover;
 }
 
-/* Animacja wieszania obrazu */
+/* Animacja kołysania przy pojawieniu się */
 @keyframes swing {
     0% { transform: rotate(10deg); }
     50% { transform: rotate(-5deg); }
     100% { transform: rotate(0deg); }
 }
 
-/* Na telefonach układamy jedno pod drugim */
-@media (max-width: 600px) {
-    .wall {
-        gap: 20px;
-    }
-    .spot {
-        height: 280px; /* Troszkę mniej miejsca na pion */
-    }
+/* Przycisk resetu */
+#reset-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
 }
