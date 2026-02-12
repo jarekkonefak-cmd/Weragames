@@ -2,223 +2,344 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gra 3: Zdrapka</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gra 3: Strzała Amora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --gold: #d4af37;
+            --bg: #f9f7f2;
+            --heart: #e63946;
+            --arrow: #333;
+        }
+
         body {
             margin: 0;
-            padding: 0;
-            background-color: #ffe6e6;
+            background-color: var(--bg);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden; /* Żeby nie przesuwać ekranu przy zdrapywaniu */
+            touch-action: none;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            width: 100%;
         }
 
         h2 {
-            color: #d63384;
-            margin-bottom: 20px;
-            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            color: var(--gold);
+            font-size: 2.2rem;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .scratch-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
-            border: 5px solid #d63384;
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            background: white; /* Tło pod zdrapką */
-            overflow: hidden;
+        .info-bar {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #888;
+            letter-spacing: 1px;
         }
 
-        /* To co jest ukryte pod zdrapką */
-        .secret-message {
-            width: 100%;
-            height: 100%;
-            display: flex;
+        canvas {
+            display: block;
+            margin-top: 20px;
+        }
+
+        /* Modal Wygranej */
+        #win-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            z-index: 100;
             text-align: center;
-            color: #d63384;
         }
 
-        .secret-message h3 {
-            font-family: 'Dancing Script', cursive;
-            font-size: 40px;
-            margin: 0;
-        }
-        
-        .secret-message p {
-            font-size: 18px;
-            margin-top: 10px;
-        }
-
-        /* Płótno, które zdrapujemy */
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            cursor: crosshair;
-            touch-action: none; /* WAŻNE: Blokuje przewijanie strony na telefonie */
+        /* Modal Przegranej */
+        #fail-effect {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 0, 0, 0.2);
+            display: none;
+            pointer-events: none;
+            z-index: 90;
         }
 
-        .back-btn {
-            margin-top: 30px;
+        .btn-gold {
+            background: linear-gradient(135deg, #d4af37, #b88a44);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
             text-decoration: none;
-            color: #d63384;
-            border: 1px solid #d63384;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: none; /* Ukryty, dopóki nie wygra */
         }
 
-        .instruction {
-            margin-top: 10px;
-            color: #888;
-            font-size: 14px;
+        .arrows-left {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gold);
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Zdrap, aby odkryć niespodziankę! ✨</h2>
-
-    <div class="scratch-container">
-        <div class="secret-message">
-            <h3>Kocham Cię!</h3>
-            <p>Jesteś moją wygraną ❤️</p>
-        </div>
-        
-        <canvas id="scratchCanvas"></canvas>
+    <div class="ui-layer">
+        <h2>Traf w moje serce...</h2>
+        <div class="info-bar">Nie traf w inne strzały!</div>
+        <div class="arrows-left" id="ammo-count">Strzał: 6</div>
     </div>
 
-    <p class="instruction">Przesuwaj palcem lub myszką po szarym polu.</p>
+    <div id="fail-effect"></div>
+    <canvas id="gameCanvas"></canvas>
 
-    <a href="index.html" class="back-btn" id="winBtn">Wróć do Pudełka Wspomnień</a>
+    <div id="win-screen">
+        <h1 style="font-family: 'Dancing Script'; font-size: 3rem; color: var(--gold);">Idealnie!</h1>
+        <p>Twoja celność jest niesamowita.</p>
+        <a href="index.html" class="btn-gold" onclick="finish()">Odbierz obraz</a>
+    </div>
 
     <script>
-        const canvas = document.getElementById('scratchCanvas');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const width = 300;
-        const height = 300;
+        const ammoDisplay = document.getElementById('ammo-count');
         
-        // Ustawiamy rzeczywisty rozmiar canvasa
-        canvas.width = width;
-        canvas.height = height;
+        // Ustawienia ekranu
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 3; // Serce trochę wyżej
 
-        // 1. Rysujemy szarą powłokę (do zdrapywania)
-        function initCard() {
-            ctx.fillStyle = '#C0C0C0'; // Srebrny kolor
-            ctx.fillRect(0, 0, width, height);
+        // Konfiguracja gry
+        let arrowsToShoot = 6;
+        let rotationAngle = 0;
+        let rotationSpeed = 0.03;
+        let gameActive = true;
+        
+        // Tablica strzał wbitych w serce (kąty)
+        let pinnedArrows = []; 
+        
+        // Strzała która leci
+        let flyingArrow = null;
+
+        const heartRadius = 60;
+        const arrowLength = 120;
+
+        function drawHeart() {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotationAngle);
             
-            // Opcjonalnie: Napis na wierzchu zdrapki
-            ctx.fillStyle = '#888';
-            ctx.font = "20px Arial";
-            ctx.fillText("ZDRAP MNIE", 90, 150);
-        }
-
-        initCard();
-
-        let isDrawing = false;
-
-        // Funkcja zdrapywania (rysowanie przezroczystością)
-        function scratch(x, y) {
-            ctx.globalCompositeOperation = 'destination-out'; // To sprawia, że pędzel "gumuje"
+            ctx.fillStyle = "#e63946";
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "rgba(230, 57, 70, 0.4)";
+            
+            // Rysowanie serca
+            const size = heartRadius;
             ctx.beginPath();
-            ctx.arc(x, y, 20, 0, Math.PI * 2); // Rozmiar pędzla (20px)
+            ctx.moveTo(0, 0);
+            ctx.bezierCurveTo(-size, -size, -size*1.5, size/3, 0, size*1.2);
+            ctx.bezierCurveTo(size*1.5, size/3, size, -size, 0, 0);
             ctx.fill();
+
+            // Opcjonalnie: Twarz w środku (jeśli wgrana)
+            // Jeśli chcesz tu też zdjęcie, odkomentuj poniższe linie:
+            /*
+            ctx.clip();
+            const img = new Image(); img.src = 'twarz.png';
+            if(img.complete) ctx.drawImage(img, -size, -size, size*2, size*2);
+            */
+
+            ctx.restore();
         }
 
-        // --- OBSŁUGA MYSZKI ---
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            scratch(e.clientX - rect.left, e.clientY - rect.top);
-        });
+        function drawPinnedArrows() {
+            pinnedArrows.forEach(angle => {
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle + angle);
+                
+                // Linia strzały
+                ctx.strokeStyle = "#333";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, heartRadius - 10); // Start lekko w sercu
+                ctx.lineTo(0, heartRadius + arrowLength);
+                ctx.stroke();
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                const rect = canvas.getBoundingClientRect();
-                scratch(e.clientX - rect.left, e.clientY - rect.top);
-                checkWin();
+                // Lotka strzały (kółko na końcu)
+                ctx.fillStyle = "#d4af37";
+                ctx.beginPath();
+                ctx.arc(0, heartRadius + arrowLength, 8, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.restore();
+            });
+        }
+
+        function drawPlayerArrow() {
+            // Pozycja startowa strzały (dół ekranu)
+            const startY = canvas.height - 100;
+            
+            let yPos = startY;
+            if (flyingArrow) {
+                yPos = flyingArrow.y;
             }
-        });
 
-        canvas.addEventListener('mouseup', () => { isDrawing = false; });
-        canvas.addEventListener('mouseleave', () => { isDrawing = false; });
+            ctx.save();
+            ctx.translate(centerX, yPos);
+            
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, arrowLength); // Strzała skierowana w górę
+            ctx.stroke();
 
-        // --- OBSŁUGA DOTYKU (TELEFON) ---
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Blokuje scrollowanie
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            scratch(touch.clientX - rect.left, touch.clientY - rect.top);
-        });
+            // Lotka
+            ctx.fillStyle = "#333";
+            ctx.beginPath();
+            ctx.arc(0, arrowLength, 8, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
 
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (isDrawing) {
-                const rect = canvas.getBoundingClientRect();
-                const touch = e.touches[0];
-                scratch(touch.clientX - rect.left, touch.clientY - rect.top);
-                checkWin();
-            }
-        });
+        function update() {
+            if (!gameActive) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        canvas.addEventListener('touchend', () => { isDrawing = false; });
+            // Zmiana prędkości obrotu (utrudnienie!)
+            // Co jakiś czas serce zwalnia, przyspiesza lub cofa
+            if (Math.random() < 0.01) rotationSpeed = -rotationSpeed; // Zmiana kierunku
+            if (Math.random() < 0.02) rotationSpeed = (Math.random() * 0.06) + 0.02; // Zmiana prędkości
 
-        // --- SPRAWDZANIE WYGRANEJ ---
-        let won = false;
-        function checkWin() {
-            if (won) return;
+            rotationAngle += rotationSpeed;
 
-            // Pobieramy dane pikseli z całego canvasa
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const pixels = imageData.data;
-            let transparentPixels = 0;
+            drawPinnedArrows();
+            drawHeart();
+            
+            // Obsługa lecącej strzały
+            if (flyingArrow) {
+                flyingArrow.y -= 25; // Prędkość lotu
+                
+                // Sprawdzenie czy trafiła w serce
+                // Granica trafienia to mniej więcej środek serca + promień
+                if (flyingArrow.y <= centerY + heartRadius) {
+                    
+                    // Obliczamy kąt w jakim wbiła się strzała
+                    // Ponieważ strzała leci pionowo z dołu, to wchodzi pod kątem PI/2 (90 stopni) względem koła
+                    // Musimy odjąć obecny obrót serca, żeby "przykleić" ją w tym punkcie
+                    let hitAngle = (Math.PI / 2) - rotationAngle;
+                    
+                    // Normalizacja kąta do 0-2PI
+                    hitAngle = hitAngle % (Math.PI * 2);
+                    if (hitAngle < 0) hitAngle += Math.PI * 2;
 
-            // Sprawdzamy co 4 piksel (żeby było szybciej)
-            for (let i = 3; i < pixels.length; i += 4) {
-                if (pixels[i] === 0) { // Alpha = 0 (przezroczysty)
-                    transparentPixels++;
+                    // SPRAWDZENIE KOLIZJI
+                    let collision = false;
+                    const safeZone = 0.25; // Minimalny odstęp między strzałami (w radianach)
+
+                    for (let existingAngle of pinnedArrows) {
+                        // Sprawdzamy różnicę kątów
+                        let diff = Math.abs(existingAngle - hitAngle);
+                        // Obsługa przejścia przez 0/360
+                        if (diff > Math.PI) diff = (Math.PI * 2) - diff;
+                        
+                        if (diff < safeZone) {
+                            collision = true;
+                            break;
+                        }
+                    }
+
+                    if (collision) {
+                        gameOver();
+                    } else {
+                        // Sukces - wbijamy strzałę
+                        pinnedArrows.push(hitAngle);
+                        flyingArrow = null;
+                        arrowsToShoot--;
+                        ammoDisplay.innerText = "Strzał: " + arrowsToShoot;
+
+                        // Efekt wstrząsu
+                        canvas.style.transform = "translate(2px, 2px)";
+                        setTimeout(() => canvas.style.transform = "none", 50);
+
+                        if (arrowsToShoot <= 0) {
+                            winGame();
+                        }
+                    }
                 }
+            } else if (arrowsToShoot > 0) {
+                drawPlayerArrow(); // Rysuj strzałę gotową do wystrzału
             }
 
-            // Obliczamy procent zdrapania
-            const totalPixels = pixels.length / 4;
-            const percent = (transparentPixels / totalPixels) * 100;
+            requestAnimationFrame(update);
+        }
 
-            // Jeśli zdrapano więcej niż 40% powierzchni -> WYGRANA
-            if (percent > 40) {
-                won = true;
-                finishGame();
+        function shoot() {
+            if (gameActive && !flyingArrow && arrowsToShoot > 0) {
+                flyingArrow = { y: canvas.height - 100 };
             }
         }
 
-        function finishGame() {
-            // Animacja zniknięcia reszty zdrapki
-            canvas.style.transition = "opacity 1s";
-            canvas.style.opacity = "0";
-            
-            // Pokazanie przycisku
-            const btn = document.getElementById('winBtn');
-            btn.style.display = "block";
-            btn.innerText = "Brawo! Odbierz obraz 🎁";
-            
-            // ZAPISANIE W PAMIĘCI
+        function gameOver() {
+            // Efekt czerwonego ekranu
+            const fail = document.getElementById('fail-effect');
+            fail.style.display = 'block';
+            setTimeout(() => fail.style.display = 'none', 200);
+
+            // Reset gry
+            pinnedArrows = [];
+            arrowsToShoot = 6;
+            ammoDisplay.innerText = "Strzał: " + arrowsToShoot;
+            rotationSpeed = 0.03;
+        }
+
+        function winGame() {
+            gameActive = false;
             localStorage.setItem('wygrana3', 'tak');
+            setTimeout(() => {
+                document.getElementById('win-screen').style.display = 'flex';
+            }, 500);
         }
+
+        function finish() {
+            window.location.href = 'index.html';
+        }
+
+        // Sterowanie
+        window.addEventListener('mousedown', shoot);
+        window.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            shoot();
+        }, {passive: false});
+
+        // Start
+        update();
+
+        // Skalowanie
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
