@@ -3,22 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gra 3: Strzała Amora</title>
+    <title>Gra 3: Flappy Heart</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
+            padding: 0;
             background: #fdfbf7;
             font-family: 'Montserrat', sans-serif;
             overflow: hidden;
+            touch-action: none; /* Blokada przewijania na telefonie */
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            touch-action: none; /* Blokada zoomowania */
+            height: 100vh;
         }
 
-        /* --- INTERFEJS --- */
-        .ui {
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 480px; /* Ograniczenie szerokości na dużych ekranach */
+            background: linear-gradient(to bottom, #dbebf7, #fdfbf7);
+            border-left: 2px solid #ddd;
+            border-right: 2px solid #ddd;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI */
+        .ui-layer {
             position: absolute;
             top: 20px;
             width: 100%;
@@ -32,340 +51,357 @@
             color: #d4af37;
             font-size: 2.5rem;
             margin: 0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            text-shadow: 1px 1px 0px white;
         }
 
-        .level-info {
-            color: #888;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* POKAZYWANIE ILE STRZAŁ ZOSTAŁO */
-        .ammo-dots {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
+        .score-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 0 #d4af37;
             margin-top: 10px;
         }
 
-        .dot {
-            width: 10px; height: 10px;
-            background: #d4af37;
-            border-radius: 50%;
-            opacity: 0.3;
-        }
-        .dot.active { opacity: 1; transform: scale(1.2); }
-
-        canvas {
-            display: block;
-        }
-
-        /* EKRANY KOŃCOWE */
-        .modal {
-            position: fixed;
+        /* Ekrany (Start / Game Over / Win) */
+        .screen {
+            position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95);
-            display: none;
+            background: rgba(255, 255, 255, 0.85);
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
+
+        .hidden { display: none !important; }
 
         .btn {
             background: #d4af37;
             color: white;
             padding: 15px 40px;
             border: none;
-            border-radius: 30px;
-            font-size: 1.1rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
             margin-top: 20px;
-            text-decoration: none;
             box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
-        }
-        
-        .btn-retry {
-            background: #ff4d4d;
-            box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            transition: transform 0.1s;
         }
 
-        /* EFEKT BŁĘDU (Flash) */
-        #flash {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: red; opacity: 0; pointer-events: none; z-index: 50;
-            transition: opacity 0.1s;
+        .btn:active { transform: scale(0.95); }
+
+        .tutorial {
+            margin-top: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            animation: bounce 1s infinite alternate;
         }
+
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+
     </style>
 </head>
 <body>
 
-    <div class="ui">
-        <h2>Traf w moje serce</h2>
-        <div class="level-info">Nie traf w inne strzały!</div>
-        <div class="ammo-dots" id="ammo-container"></div>
-    </div>
+    <div id="game-container">
+        <div class="ui-layer">
+            <h2 id="level-title">Leć do mnie!</h2>
+            <div class="score-display" id="score">0</div>
+        </div>
 
-    <div id="flash"></div>
-    <canvas id="gameCanvas"></canvas>
+        <canvas id="canvas"></canvas>
 
-    <div id="win-modal" class="modal">
-        <h1 style="color: #d4af37; font-family: 'Dancing Script'; font-size: 3rem;">Idealnie!</h1>
-        <p>Masz cela prosto do mojego serca.</p>
-        <a href="index.html" class="btn" onclick="finish()">Odbierz obraz</a>
-    </div>
+        <div id="start-screen" class="screen">
+            <h1 style="color: #d4af37; font-family: 'Dancing Script'; font-size: 3rem;">Flappy Heart</h1>
+            <p style="color: #555;">Omiń 10 złotych kolumn, aby wygrać.</p>
+            <div class="tutorial">👆 Tapnij, aby lecieć</div>
+            <button class="btn" onclick="startGame()">START</button>
+        </div>
 
-    <div id="fail-modal" class="modal" style="background: rgba(0,0,0,0.8);">
-        <h1 style="color: white; font-family: 'Dancing Script'; font-size: 3rem;">Ała! 💔</h1>
-        <p style="color: white;">Strzały się zderzyły. Spróbuj jeszcze raz.</p>
-        <button class="btn btn-retry" onclick="resetGame()">Spróbuj ponownie</button>
+        <div id="fail-screen" class="screen hidden">
+            <h1 style="color: #ff4d4d; font-family: 'Dancing Script'; font-size: 3rem;">Ups! 💔</h1>
+            <p style="color: #555;">Serduszko uderzyło. Spróbuj jeszcze raz!</p>
+            <button class="btn" style="background: #ff4d4d;" onclick="resetGame()">Ponów próbę</button>
+        </div>
+
+        <div id="win-screen" class="screen hidden">
+            <h1 style="color: #d4af37; font-family: 'Dancing Script'; font-size: 3.5rem;">Udało się!</h1>
+            <p style="color: #555;">Doleciałaś bezpiecznie do celu.</p>
+            <a href="index.html" class="btn" onclick="finish()">Odbierz obraz</a>
+        </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
+        const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const ammoContainer = document.getElementById('ammo-container');
+        
+        // Elementy DOM
+        const scoreEl = document.getElementById('score');
+        const startScreen = document.getElementById('start-screen');
+        const failScreen = document.getElementById('fail-screen');
+        const winScreen = document.getElementById('win-screen');
 
-        // Ustawienia
-        let CW, CH;
-        let centerX, centerY;
-        
-        // Stan gry
-        let arrows = []; // Strzały wbite w serce (kąty)
-        let totalArrows = 8; // Ile trzeba wbić żeby wygrać
-        let arrowsLeft = totalArrows;
-        let rotation = 0;
-        let speed = 0.02; // Prędkość obrotu
-        let isDead = false;
-        let flyingArrow = null; // Pozycja Y lecącej strzały (jeśli istnieje)
-        
-        // Konfiguracja wizualna
-        const HEART_RADIUS = 60;
-        const ARROW_LEN = 120;
-        const PIN_DEPTH = 20; // Jak głęboko strzała wchodzi w serce
+        // Ustawienia gry
+        let frames = 0;
+        let score = 0;
+        let gameSpeed = 3; // Prędkość przesuwania
+        let isRunning = false;
+        const TARGET_SCORE = 10; // Ile punktów do wygranej
 
         // Twarz (opcjonalnie)
         const faceImg = new Image();
         faceImg.src = 'twarz.png';
 
+        // Skalowanie Canvas
         function resize() {
-            CW = canvas.width = window.innerWidth;
-            CH = canvas.height = window.innerHeight;
-            centerX = CW / 2;
-            centerY = CH / 3; // Serce jest w 1/3 wysokości ekranu
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
         }
         window.addEventListener('resize', resize);
         resize();
 
-        function updateAmmoUI() {
-            ammoContainer.innerHTML = '';
-            for(let i=0; i<arrowsLeft; i++) {
-                const dot = document.createElement('div');
-                dot.classList.add('dot', 'active');
-                ammoContainer.appendChild(dot);
+        // --- OBIEKT: GRACZ (SERCE) ---
+        const bird = {
+            x: 50,
+            y: 150,
+            w: 34,
+            h: 28,
+            radius: 14,
+            velocity: 0,
+            gravity: 0.25,
+            jump: -5.5, // Siła skoku
+            rotation: 0,
+
+            draw: function() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                // Obrót w zależności od prędkości
+                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
+                ctx.rotate(this.rotation);
+
+                // Cień
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "rgba(230, 0, 0, 0.3)";
+
+                // Rysowanie serca
+                ctx.fillStyle = '#e63946';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                // Skalujemy kształt serca
+                const s = 1.2; 
+                ctx.bezierCurveTo(-10*s, -10*s, -20*s, 5*s, 0, 20*s);
+                ctx.bezierCurveTo(20*s, 5*s, 10*s, -10*s, 0, 0);
+                ctx.fill();
+
+                // Małe skrzydełko (animowane)
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                // Machanie skrzydłem
+                const wingY = (frames % 10 < 5) ? -5 : 0;
+                ctx.ellipse(-5, -5 + wingY, 8, 4, -0.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Twarz w środku (jeśli jest plik)
+                if (faceImg.complete && faceImg.naturalWidth !== 0) {
+                    ctx.clip(); // Przycinamy do ostatniego kształtu (skrzydła nie przytnie bo to nowy path)
+                    // Ale musimy przyciąć do serca... uprośćmy:
+                    // Rysujemy kółko w środku serca z twarzą
+                    ctx.beginPath();
+                    ctx.arc(0, 5, 8, 0, Math.PI*2);
+                    ctx.clip();
+                    ctx.drawImage(faceImg, -8, -3, 16, 16);
+                }
+
+                ctx.restore();
+            },
+
+            update: function() {
+                this.velocity += this.gravity;
+                this.y += this.velocity;
+
+                // Podłoga
+                if (this.y + this.h/2 >= canvas.height) {
+                    this.y = canvas.height - this.h/2;
+                    gameOver();
+                }
+                // Sufit
+                if (this.y - this.h/2 <= 0) {
+                    this.y = this.h/2;
+                    this.velocity = 0;
+                }
+            },
+
+            flap: function() {
+                this.velocity = this.jump;
             }
-        }
+        };
 
-        // Rysowanie serca
-        function drawHeart(x, y, r, angle) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle);
-            
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = "rgba(230, 57, 70, 0.4)";
-            ctx.fillStyle = "#e63946"; // Czerwony
-            
-            ctx.beginPath();
-            // Kształt serca matematyczny
-            for (let i = 0; i < Math.PI * 2; i += 0.1) {
-                let x = 16 * Math.pow(Math.sin(i), 3);
-                let y = -(13 * Math.cos(i) - 5 * Math.cos(2 * i) - 2 * Math.cos(3 * i) - Math.cos(4 * i));
-                // Skalowanie
-                x *= (r / 16);
-                y *= (r / 16);
-                ctx.lineTo(x, y);
+        // --- OBIEKT: RURY (KOLUMNY) ---
+        const pipes = {
+            position: [],
+            w: 50,
+            h: 0, // dynamiczne
+            gap: 160, // Odstęp między górną a dolną rurą (im więcej tym łatwiej)
+            dx: gameSpeed,
+
+            draw: function() {
+                for (let i = 0; i < this.position.length; i++) {
+                    let p = this.position[i];
+                    let topY = p.y;
+                    let bottomY = p.y + this.gap;
+
+                    ctx.fillStyle = '#d4af37'; // Złoty kolor
+                    
+                    // Górna kolumna
+                    // Trzon
+                    ctx.fillRect(p.x, 0, this.w, topY);
+                    // Ozdobna głowica (cap)
+                    ctx.fillRect(p.x - 5, topY - 20, this.w + 10, 20);
+                    // Cieniowanie (efekt 3D)
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect(p.x + 5, 0, 10, topY); 
+
+                    // Dolna kolumna
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fillRect(p.x, bottomY, this.w, canvas.height - bottomY);
+                    // Głowica
+                    ctx.fillRect(p.x - 5, bottomY, this.w + 10, 20);
+                    // Cieniowanie
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect(p.x + 5, bottomY + 20, 10, canvas.height - bottomY);
+                }
+            },
+
+            update: function() {
+                // Dodawanie nowych rur co 120 klatek
+                if (frames % 120 === 0) {
+                    // Losowa pozycja dziury
+                    // min Y = 50, max Y = canvas.height - gap - 50
+                    let maxY = canvas.height - this.gap - 100;
+                    let y = Math.floor(Math.random() * (maxY - 100)) + 100;
+                    
+                    this.position.push({
+                        x: canvas.width,
+                        y: y,
+                        passed: false
+                    });
+                }
+
+                for (let i = 0; i < this.position.length; i++) {
+                    let p = this.position[i];
+                    p.x -= this.dx;
+
+                    // Kolizje
+                    // Czy ptak jest w poziomie rury?
+                    if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w) {
+                        // Czy ptak uderzył w górną LUB dolną?
+                        // (bird.y - radius < topY) OR (bird.y + radius > bottomY)
+                        if ((bird.y - bird.radius < p.y) || (bird.y + bird.radius > p.y + this.gap)) {
+                            gameOver();
+                        }
+                    }
+
+                    // Punktacja
+                    if (p.x + this.w < bird.x && !p.passed) {
+                        score++;
+                        scoreEl.innerText = score;
+                        p.passed = true;
+                        
+                        // Sprawdź wygraną
+                        if (score >= TARGET_SCORE) {
+                            winGame();
+                        }
+                    }
+
+                    // Usuwanie starych rur
+                    if (p.x + this.w <= 0) {
+                        this.position.shift();
+                        i--; // korekta indeksu po usunięciu
+                    }
+                }
             }
-            ctx.fill();
+        };
 
-            // Rysowanie twarzy w środku (jeśli jest)
-            ctx.clip(); // Przycinamy do kształtu serca
-            if (faceImg.complete && faceImg.naturalWidth !== 0) {
-                // Rysujemy zdjęcie
-                ctx.rotate(-angle); // Kontrujemy obrót, żeby twarz była prosto? 
-                // Albo niech się kręci - śmieszniej. Zostawmy kręcenie.
-                // Żeby twarz się kręciła:
-                ctx.drawImage(faceImg, -r, -r, r*2, r*2);
-            } 
-            
-            ctx.restore();
-        }
-
-        function drawArrow(x, y, angle) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle);
-            
-            // Trzonek
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(0, ARROW_LEN);
-            ctx.strokeStyle = "#333";
-            ctx.lineWidth = 4;
-            ctx.stroke();
-
-            // Grot (kulka na końcu)
-            ctx.beginPath();
-            ctx.arc(0, ARROW_LEN, 6, 0, Math.PI*2);
-            ctx.fillStyle = "#d4af37";
-            ctx.fill();
-
-            ctx.restore();
-        }
-
+        // --- PĘTLA GRY ---
         function loop() {
-            if (isDead && flyingArrow === null) return; // Zatrzymaj pętlę tylko jak przegrana i brak animacji
-            requestAnimationFrame(loop);
+            if (!isRunning) return;
 
-            ctx.clearRect(0, 0, CW, CH);
-
-            // Aktualizacja obrotu
-            // Zmienna prędkość dla utrudnienia
-            if (!isDead) {
-                rotation += speed;
-                // Co jakiś czas zmiana prędkości
-                if (Date.now() % 2000 < 20) {
-                    speed = (Math.random() * 0.04) + 0.01; 
-                    if(Math.random() > 0.5) speed *= -1; // Czasem zmień kierunek
-                }
-            }
-
-            // 1. Rysuj wbite strzały
-            // Ważne: one kręcą się razem z sercem
-            for (let arrowAngle of arrows) {
-                // Pozycja wbicia na obwodzie koła
-                // Matematyka: pozycja to środek + wektor obrócony o (rotation + arrowAngle)
-                const currentAngle = rotation + arrowAngle;
-                
-                const pinX = centerX + Math.cos(currentAngle) * (HEART_RADIUS - PIN_DEPTH);
-                const pinY = centerY + Math.sin(currentAngle) * (HEART_RADIUS - PIN_DEPTH);
-
-                // Strzała wystaje na zewnątrz, więc jej kąt to currentAngle
-                drawArrow(pinX, pinY, currentAngle + Math.PI/2); 
-            }
-
-            // 2. Rysuj serce na wierzchu (żeby przykryć groty strzał)
-            drawHeart(centerX, centerY, HEART_RADIUS, rotation);
-
-            // 3. Rysuj strzałę gracza (tą co leci albo czeka)
-            if (flyingArrow !== null) {
-                // Leci
-                flyingArrow -= 25; // Szybkość lotu
-                drawArrow(centerX, flyingArrow, Math.PI); // Math.PI żeby była skierowana w górę
-
-                // Kolizja z sercem
-                if (flyingArrow <= centerY + HEART_RADIUS - PIN_DEPTH) {
-                    // TRAFIENIE!
-                    
-                    // Obliczamy kąt trafienia względem OBECNEGO obrotu serca
-                    // Strzała uderza od dołu, czyli w kącie 90 stopni (PI/2)
-                    // Ale serce jest obrócone o 'rotation'.
-                    // Więc relatywny kąt to: PI/2 - rotation
-                    let hitAngle = (Math.PI / 2) - rotation;
-                    
-                    // Normalizacja do 0-2PI
-                    hitAngle = hitAngle % (Math.PI * 2);
-                    if (hitAngle < 0) hitAngle += Math.PI * 2;
-
-                    // Sprawdź czy nie uderzyliśmy w inną strzałę
-                    let crash = false;
-                    const minDistance = 0.3; // Minimalny odstęp w radianach
-
-                    for (let existing of arrows) {
-                        let diff = Math.abs(existing - hitAngle);
-                        if (diff > Math.PI) diff = (Math.PI * 2) - diff; // Obsługa przejścia przez 0
-                        if (diff < minDistance) {
-                            crash = true;
-                            break;
-                        }
-                    }
-
-                    if (crash) {
-                        gameOver();
-                    } else {
-                        // Sukces
-                        arrows.push(hitAngle);
-                        flyingArrow = null;
-                        arrowsLeft--;
-                        updateAmmoUI();
-
-                        // Efekt wstrząsu
-                        ctx.translate(Math.random()*4-2, Math.random()*4-2);
-
-                        if (arrowsLeft <= 0) {
-                            win();
-                        }
-                    }
-                }
-            } else if (!isDead && arrowsLeft > 0) {
-                // Czeka na wystrzał
-                drawArrow(centerX, CH - 100, Math.PI);
-            }
-        }
-
-        function shoot() {
-            if (isDead || flyingArrow !== null || arrowsLeft <= 0) return;
-            flyingArrow = CH - 100; // Startujemy lot
-        }
-
-        function gameOver() {
-            isDead = true;
-            document.getElementById('flash').style.opacity = 0.5;
-            setTimeout(() => document.getElementById('flash').style.opacity = 0, 100);
+            // Tło - czyścimy
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Pokaż ekran przegranej
-            setTimeout(() => {
-                document.getElementById('fail-modal').style.display = 'flex';
-            }, 500);
+            // Chmury w tle (ozdoba)
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.beginPath();
+            ctx.arc((frames * 0.5) % (canvas.width + 100) - 50, 100, 30, 0, Math.PI*2);
+            ctx.fill();
+
+            pipes.update();
+            pipes.draw();
+            
+            bird.update();
+            bird.draw();
+
+            frames++;
+            requestAnimationFrame(loop);
+        }
+
+        // --- STEROWANIE ---
+        function startGame() {
+            startScreen.classList.add('hidden');
+            isRunning = true;
+            loop();
         }
 
         function resetGame() {
-            isDead = false;
-            arrows = [];
-            arrowsLeft = totalArrows;
-            flyingArrow = null;
-            speed = 0.02;
-            updateAmmoUI();
-            document.getElementById('fail-modal').style.display = 'none';
-            loop(); // Restart pętli
+            bird.y = 150;
+            bird.velocity = 0;
+            pipes.position = [];
+            score = 0;
+            scoreEl.innerText = score;
+            frames = 0;
+            failScreen.classList.add('hidden');
+            isRunning = true;
+            loop();
         }
 
-        function win() {
-            isDead = true; // Zatrzymujemy strzelanie
+        function gameOver() {
+            isRunning = false;
+            failScreen.classList.remove('hidden');
+        }
+
+        function winGame() {
+            isRunning = false;
             localStorage.setItem('wygrana3', 'tak');
-            setTimeout(() => {
-                document.getElementById('win-modal').style.display = 'flex';
-            }, 500);
+            winScreen.classList.remove('hidden');
         }
 
         function finish() {
             window.location.href = 'index.html';
         }
 
-        // Sterowanie
-        window.addEventListener('mousedown', shoot);
-        window.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Stop zoom
-            shoot();
-        }, {passive: false});
+        // Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') bird.flap();
+        });
 
-        // Start
-        updateAmmoUI();
-        loop();
+        // Obsługa dotyku i myszy na całym ekranie
+        window.addEventListener('mousedown', () => {
+            if(isRunning) bird.flap();
+        });
+        
+        window.addEventListener('touchstart', (e) => {
+            if(isRunning) {
+                e.preventDefault(); // nie scrolluj
+                bird.flap();
+            }
+        }, {passive: false});
 
     </script>
 </body>
