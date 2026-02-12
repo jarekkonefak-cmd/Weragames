@@ -3,184 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gra 2: Nasze Wspomnienia</title>
+    <title>Memory Masterpiece</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --gold: #d4af37;
+            --gold-gradient: linear-gradient(135deg, #b88a44 0%, #fadd75 45%, #eebb55 55%, #8a6e34 100%);
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
         body {
-            background-color: #2c0000;
-            color: #ffd700;
-            font-family: 'Verdana', sans-serif;
+            background: #fdfbf7;
+            margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
-            padding: 20px;
+            min-height: 100vh;
+            font-family: 'Playfair Display', serif;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #fff 0%, #fdfbf7 100%);
         }
 
-        h2 { margin-bottom: 10px; }
+        h2 {
+            font-family: 'Dancing Script', cursive;
+            color: var(--gold);
+            font-size: 2.8rem;
+            margin: 10px 0 30px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        /* Kontener cząsteczek */
+        #particle-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
 
         .game-board {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 karty w rzędzie */
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
             max-width: 400px;
+            width: 100%;
+            perspective: 1200px;
         }
 
+        /* KARTA MASTER */
         .card {
-            width: 70px;
-            height: 100px;
-            background-color: #ffd700; /* Kolor zakrytej karty */
-            border-radius: 5px;
+            aspect-ratio: 1/1;
+            position: relative;
             cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .card.reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 15px;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
-            transition: transform 0.3s;
+            overflow: hidden;
+        }
+
+        /* TYŁ (ZŁOTY) */
+        .card-front {
+            background: var(--gold-gradient);
             position: relative;
         }
 
-        .card.flipped {
-            background-color: #fff; /* Kolor odkrytej karty */
+        .card-front::before {
+            content: '❤️';
+            font-size: 40px;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        }
+
+        /* BŁYSK NA KARCIE */
+        .shine {
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-25deg);
+            transition: 0.5s;
+        }
+
+        .card:hover .shine {
+            left: 150%;
+        }
+
+        /* PRZÓD (ZDJĘCIE) */
+        .card-back {
+            background: white;
             transform: rotateY(180deg);
+            padding: 5px;
+            box-sizing: border-box;
         }
-        
-        /* Ukrywamy treść, jeśli karta nie jest odwrócona */
-        .card-content {
+
+        .card-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        /* EFEKT MATCH (TRAFIENIE) */
+        .matched .card-inner {
+            animation: match-glow 0.6s ease-out;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+        }
+
+        @keyframes match-glow {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.15); filter: brightness(1.3); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* CZĄSTECZKI SERCA */
+        .heart-particle {
+            position: absolute;
+            color: #d4af37;
+            font-size: 20px;
+            user-select: none;
+            animation: fly-away 1s forwards;
+        }
+
+        @keyframes fly-away {
+            to {
+                transform: translate(var(--x), var(--y)) rotate(var(--r));
+                opacity: 0;
+            }
+        }
+
+        /* MODAL WYGRANEJ */
+        #win-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(253, 251, 247, 0.95);
             display: none;
-        }
-        
-        .card.flipped .card-content {
-            display: block;
-            transform: rotateY(180deg); /* Odkręcamy treść z powrotem */
-        }
-
-        .matched {
-            background-color: #88ff88 !important; /* Zielony kolor jak trafisz parę */
-            cursor: default;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 1s;
         }
 
-        #message {
-            margin-top: 20px;
-            font-size: 18px;
-            height: 30px;
-        }
+        #win-modal.show { display: flex; opacity: 1; }
 
-        a {
-            color: #ffd700;
-            margin-top: 20px;
+        .btn-gold {
+            background: var(--gold-gradient);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
             text-decoration: none;
-            border: 1px solid #ffd700;
-            padding: 10px;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+            transition: 0.3s;
         }
+
+        .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(212, 175, 55, 0.4); }
     </style>
 </head>
 <body>
 
-    <h2>Znajdź pary! ❤️</h2>
-    <div id="message">Szukaj par...</div>
+    <div id="particle-container"></div>
 
-    <div class="game-board" id="board">
-        </div>
+    <h2>Nasze Chwile ❤️</h2>
 
-    <a href="index.html">Poddaję się (Wróć)</a>
+    <div class="game-board" id="board"></div>
+
+    <div id="win-modal">
+        <h1 style="font-family: 'Dancing Script'; font-size: 4rem; color: var(--gold); margin: 0;">Cudownie!</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 30px;">Odnaleźliście wszystkie wspomnienia.</p>
+        <a href="index.html" class="btn-gold">Wróć do Galerii</a>
+    </div>
 
     <script>
-        // TU ZDEFINIUJ PARY
-        // Teraz są to emoji. Jak będziesz miał zdjęcia, wpisz tu:
-        // '<img src="fotka1.jpg" width="50">', itd.
-        const items = [
-            '❤️', '❤️',
-            '🌹', '🌹',
-            '💍', '💍',
-            '💋', '💋',
-            '😻', '😻',
-            '🎁', '🎁'
-        ];
-
-        let firstCard = null;
-        let secondCard = null;
+        const photos = ['m1.jpg', 'm2.jpg', 'm3.jpg', 'm4.jpg', 'm5.jpg', 'm6.jpg'];
+        let cardsArray = [...photos, ...photos];
+        let firstCard = null, secondCard = null;
         let lockBoard = false;
-        let matchesFound = 0;
-        const totalPairs = items.length / 2;
+        let matches = 0;
 
-        // Mieszanie kart (Algorytm Fisher-Yates)
         function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+            array.sort(() => Math.random() - 0.5);
+        }
+
+        function createParticles(x, y) {
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                p.classList.add('heart-particle');
+                p.innerHTML = '❤️';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.setProperty('--x', (Math.random() - 0.5) * 200 + 'px');
+                p.style.setProperty('--y', (Math.random() - 0.5) * 200 + 'px');
+                p.style.setProperty('--r', Math.random() * 360 + 'deg');
+                document.getElementById('particle-container').appendChild(p);
+                setTimeout(() => p.remove(), 1000);
             }
-            return array;
         }
 
         function createBoard() {
             const board = document.getElementById('board');
-            const shuffledItems = shuffle(items);
-
-            shuffledItems.forEach((item) => {
+            shuffle(cardsArray);
+            cardsArray.forEach((photo, index) => {
                 const card = document.createElement('div');
                 card.classList.add('card');
-                
-                // Tworzymy wnętrze karty
-                const content = document.createElement('div');
-                content.classList.add('card-content');
-                content.innerHTML = item; // Tu wstawia się emoji lub zdjęcie
-                
-                card.appendChild(content);
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front"><div class="shine"></div></div>
+                        <div class="card-back"><img src="${photo}"></div>
+                    </div>
+                `;
                 card.addEventListener('click', flipCard);
                 board.appendChild(card);
+                
+                // Efekt wejścia
+                setTimeout(() => card.classList.add('reveal'), index * 100);
             });
         }
 
         function flipCard() {
-            if (lockBoard) return;
-            if (this === firstCard) return; // Nie można kliknąć tej samej karty 2 razy
+            if (lockBoard || this === firstCard || this.classList.contains('matched')) return;
 
             this.classList.add('flipped');
 
             if (!firstCard) {
-                // Pierwsze kliknięcie
                 firstCard = this;
                 return;
             }
 
-            // Drugie kliknięcie
             secondCard = this;
-            checkForMatch();
+            lockBoard = true;
+            checkMatch();
         }
 
-        function checkForMatch() {
-            // Sprawdzamy czy treść w środku jest taka sama
-            let isMatch = firstCard.innerHTML === secondCard.innerHTML;
-
+        function checkMatch() {
+            let isMatch = firstCard.querySelector('img').src === secondCard.querySelector('img').src;
+            
             if (isMatch) {
-                disableCards();
-            } else {
-                unflipCards();
-            }
-        }
-
-        function disableCards() {
-            firstCard.classList.add('matched');
-            secondCard.classList.add('matched');
-            
-            // Czyścimy zmienne
-            resetBoard();
-            
-            matchesFound++;
-            if (matchesFound === totalPairs) {
-                setTimeout(() => {
-                    gameWon();
-                }, 500);
-            }
-        }
-
-        function unflipCards() {
-            lockBoard = true; // Blokujemy klikanie innych kart
-            setTimeout(() => {
-                firstCard.classList.remove('flipped');
-                secondCard.classList.remove('flipped');
+                const rect = secondCard.getBoundingClientRect();
+                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+                
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                matches++;
+                
+                if (matches === photos.length) {
+                    setTimeout(winGame, 1000);
+                }
                 resetBoard();
-            }, 1000); // Czas na zapamiętanie (1 sekunda)
+            } else {
+                setTimeout(() => {
+                    firstCard.classList.remove('flipped');
+                    secondCard.classList.remove('flipped');
+                    resetBoard();
+                }, 1000);
+            }
         }
 
         function resetBoard() {
@@ -188,21 +298,13 @@
             lockBoard = false;
         }
 
-        function gameWon() {
-            document.getElementById('message').innerText = "Wygrałaś! Kocham Cię!";
-            
-            // ZAPISUJEMY WYNIK DLA MUZEUM
+        function winGame() {
             localStorage.setItem('wygrana2', 'tak');
-            
-            setTimeout(() => {
-                alert("Brawo! Kolejne wspomnienie odblokowane!");
-                window.location.href = 'index.html';
-            }, 500);
+            const modal = document.getElementById('win-modal');
+            modal.classList.add('show');
         }
 
-        // Start gry
         createBoard();
-
     </script>
 </body>
 </html>
