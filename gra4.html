@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puzzle - Nasze Wspomnienie</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: #d4af37;
@@ -18,84 +18,82 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
-            touch-action: none; /* Blokada scrolla przy przesuwaniu */
+            touch-action: none;
         }
 
         h2 {
             font-family: 'Dancing Script', cursive;
             color: var(--gold);
-            font-size: 2rem;
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
-        #puzzle-container {
+        /* Kontener Puzzli */
+        #puzzle-board {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2px;
+            gap: 4px;
             width: 300px;
             height: 300px;
-            background-color: #ddd;
-            border: 5px solid var(--gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 10px solid white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            background: #eee;
             position: relative;
         }
 
         .tile {
-            width: 100px;
-            height: 100px;
-            background-image: url('puzzle.jpg'); /* Tu będzie Twoje zdjęcie */
+            width: 100%;
+            height: 100%;
+            background-image: url('puzzle.jpg'); /* Twoje zdjęcie */
             background-size: 300px 300px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 2px;
             box-sizing: border-box;
         }
 
+        /* Puste pole */
         .tile.empty {
-            background: #eee;
+            background: #f9f7f2 !important;
             cursor: default;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            border: 1px dashed #ccc;
         }
 
-        /* Przyciski pomocnicze */
         .controls {
-            margin-top: 25px;
-            display: flex;
-            gap: 15px;
+            margin-top: 30px;
+            text-align: center;
         }
 
         .btn {
-            background: white;
-            border: 2px solid var(--gold);
-            color: var(--gold);
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.3s;
-        }
-
-        .btn:hover {
             background: var(--gold);
             color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
         }
 
-        /* Okno wygranej */
+        /* Modal Wygranej */
         #win-modal {
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0);
             background: white;
-            padding: 30px;
-            border-radius: 20px;
+            padding: 40px;
+            border-radius: 15px;
             text-align: center;
             z-index: 100;
             transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 80%;
+            max-width: 300px;
         }
 
         #win-modal.show { transform: translate(-50%, -50%) scale(1); }
@@ -103,7 +101,7 @@
         .overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
             display: none;
             z-index: 90;
         }
@@ -111,139 +109,125 @@
 </head>
 <body>
 
-    <h2>Ułóż nasze zdjęcie ❤️</h2>
+    <h2>Ułóż nasze wspomnienie ❤️</h2>
 
-    <div id="puzzle-container"></div>
+    <div id="puzzle-board"></div>
 
     <div class="controls">
-        <button class="btn" onclick="shuffleTiles()">Pomieszaj</button>
-        <button class="btn" onmousedown="showPreview(true)" onmouseup="showPreview(false)" ontouchstart="showPreview(true)" ontouchend="showPreview(false)">Podgląd</button>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">Klikaj kafelki obok pustego pola, aby je przesuwać.</p>
+        <button class="btn" onclick="location.reload()">Zacznij od nowa</button>
     </div>
 
     <div class="overlay" id="overlay"></div>
     <div id="win-modal">
-        <h3 style="color: var(--gold); font-family: 'Dancing Script'; font-size: 2rem;">Wspaniale!</h3>
-        <p>Kolejny element układanki odnaleziony.</p>
+        <h3 style="color: var(--gold); font-family: 'Dancing Script'; font-size: 2.5rem; margin: 0;">Brawo!</h3>
+        <p>Zdjęcie odblokowane!</p>
         <button class="btn" onclick="goBack()">Wróć do Galerii</button>
     </div>
 
     <script>
-        const container = document.getElementById('puzzle-container');
-        let tiles = [];
+        const board = document.getElementById('puzzle-board');
+        let tiles = []; // Tablica przechowująca aktualne stany divów
         const size = 3;
-        const totalTiles = size * size;
-        let emptyIndex = totalTiles - 1;
+        // Puste pole na stałe w lewym dolnym rogu (index 6 w siatce 3x3)
+        // 0 1 2
+        // 3 4 5
+        // 6 7 8 -> 6 to lewy dół
+        let emptyIndex = 6; 
 
-        // Inicjalizacja kafelków
-        function init() {
-            for (let i = 0; i < totalTiles; i++) {
+        // Pozycje tła dla każdego kafelka (0-8)
+        const bgPositions = [
+            {x: 0, y: 0},       {x: -100, y: 0},       {x: -200, y: 0},
+            {x: 0, y: -100},    {x: -100, y: -100},    {x: -200, y: -100},
+            {x: 0, y: -200},    {x: -100, y: -200},    {x: -200, y: -200}
+        ];
+
+        function initGame() {
+            // Tworzymy kafelki w ułożonej pozycji
+            for (let i = 0; i < 9; i++) {
                 const tile = document.createElement('div');
                 tile.classList.add('tile');
+                
                 if (i === emptyIndex) {
                     tile.classList.add('empty');
-                    tile.style.backgroundImage = 'none';
                 } else {
-                    const row = Math.floor(i / size);
-                    const col = i % size;
-                    tile.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                    tile.style.backgroundPosition = `${bgPositions[i].x}px ${bgPositions[i].y}px`;
                 }
-                tile.addEventListener('click', () => moveTile(i));
+                
+                // Atrybut przechowujący ID zdjęcia (żeby sprawdzić wygraną)
+                tile.dataset.correctId = i;
+                tile.addEventListener('click', () => handleTileClick(i));
+                
                 tiles.push(tile);
-                container.appendChild(tile);
+                board.appendChild(tile);
             }
-            // Mieszamy na start
-            setTimeout(shuffleTiles, 500);
+            
+            // Mieszamy grę wykonując 100 bezpiecznych ruchów
+            shuffle();
         }
 
-        function moveTile(index) {
+        function handleTileClick(index) {
             if (isAdjacent(index, emptyIndex)) {
-                swap(index, emptyIndex);
+                swapTiles(index, emptyIndex);
                 emptyIndex = index;
                 checkWin();
             }
         }
 
-        function isAdjacent(i1, i2) {
-            const r1 = Math.floor(i1 / size), c1 = i1 % size;
-            const r2 = Math.floor(i2 / size), c2 = i2 % size;
+        function isAdjacent(idx1, idx2) {
+            const r1 = Math.floor(idx1 / 3), c1 = idx1 % 3;
+            const r2 = Math.floor(idx2 / 3), c2 = idx2 % 3;
             return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
         }
 
-        function swap(i1, i2) {
-            const tempHTML = tiles[i1].innerHTML;
-            const tempBG = tiles[i1].style.backgroundPosition;
-            const tempClass = tiles[i1].className;
+        function swapTiles(idx1, idx2) {
+            // Zamieniamy style i dane między divami
+            const t1 = tiles[idx1];
+            const t2 = tiles[idx2];
 
-            tiles[i1].className = tiles[i2].className;
-            tiles[i1].style.backgroundPosition = tiles[i2].style.backgroundPosition;
-            if (tiles[i2].classList.contains('empty')) {
-                tiles[i1].style.backgroundImage = 'none';
-            } else {
-                tiles[i1].style.backgroundImage = "url('puzzle.jpg')";
-            }
+            const tempBG = t1.style.backgroundPosition;
+            const tempID = t1.dataset.correctId;
+            const tempEmpty = t1.classList.contains('empty');
 
-            tiles[i2].className = tempClass;
-            tiles[i2].style.backgroundPosition = tempBG;
-            if (tempClass.includes('empty')) {
-                tiles[i2].style.backgroundImage = 'none';
-            } else {
-                tiles[i2].style.backgroundImage = "url('puzzle.jpg')";
-            }
+            // Przypisz T2 do T1
+            t1.style.backgroundPosition = t2.style.backgroundPosition;
+            t1.dataset.correctId = t2.dataset.correctId;
+            if (t2.classList.contains('empty')) t1.classList.add('empty');
+            else t1.classList.remove('empty');
+
+            // Przypisz T1 (temp) do T2
+            t2.style.backgroundPosition = tempBG;
+            t2.dataset.correctId = tempID;
+            if (tempEmpty) t2.classList.add('empty');
+            else t2.classList.remove('empty');
         }
 
-        function shuffleTiles() {
-            for (let i = 0; i < 200; i++) {
-                const neighbors = getNeighbors(emptyIndex);
-                const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
-                swap(randomNeighbor, emptyIndex);
-                emptyIndex = randomNeighbor;
-            }
-        }
-
-        function getNeighbors(index) {
-            const neighbors = [];
-            const r = Math.floor(index / size), c = index % size;
-            if (r > 0) neighbors.push(index - size);
-            if (r < size - 1) neighbors.push(index + size);
-            if (c > 0) neighbors.push(index - 1);
-            if (c < size - 1) neighbors.push(index + 1);
-            return neighbors;
-        }
-
-        function showPreview(show) {
-            tiles.forEach((tile, i) => {
-                if (show) {
-                    const row = Math.floor(i / size);
-                    const col = i % size;
-                    tile.style.backgroundImage = "url('puzzle.jpg')";
-                    tile.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
-                    tile.style.opacity = "0.5";
-                } else {
-                    const isNowEmpty = tiles[i].classList.contains('empty');
-                    tile.style.backgroundImage = isNowEmpty ? 'none' : "url('puzzle.jpg')";
-                    tile.style.opacity = "1";
+        function shuffle() {
+            let moves = 0;
+            while (moves < 100) {
+                const neighbors = [];
+                for (let i = 0; i < 9; i++) {
+                    if (isAdjacent(i, emptyIndex)) neighbors.push(i);
                 }
-            });
+                const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                swapTiles(randomNeighbor, emptyIndex);
+                emptyIndex = randomNeighbor;
+                moves++;
+            }
         }
 
         function checkWin() {
-            let win = true;
-            tiles.forEach((tile, i) => {
-                if (tile.classList.contains('empty')) {
-                    if (i !== totalTiles - 1) win = false;
-                } else {
-                    const row = Math.floor(i / size);
-                    const col = i % size;
-                    const expectedPos = `-${col * 100}px -${row * 100}px`;
-                    if (tile.style.backgroundPosition !== expectedPos) win = false;
+            let isWon = true;
+            tiles.forEach((tile, index) => {
+                if (parseInt(tile.dataset.correctId) !== index) {
+                    isWon = false;
                 }
             });
 
-            if (win) {
-                // Pokazujemy brakujący element
-                tiles[emptyIndex].style.backgroundImage = "url('puzzle.jpg')";
-                tiles[emptyIndex].style.backgroundPosition = "-200px -200px";
+            if (isWon) {
+                // Usuwamy klasę pustego pola, żeby pokazać cały obrazek
                 tiles[emptyIndex].classList.remove('empty');
+                tiles[emptyIndex].style.backgroundPosition = `${bgPositions[emptyIndex].x}px ${bgPositions[emptyIndex].y}px`;
                 
                 localStorage.setItem('wygrana4', 'tak');
                 setTimeout(() => {
@@ -257,7 +241,7 @@
             window.location.href = 'index.html';
         }
 
-        init();
+        initGame();
     </script>
 </body>
 </html>
