@@ -1,1 +1,161 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra 3: Quiz o Nas</title>
+    <style>
+        body {
+            background-color: #ffe6f2; /* Bardzo jasny róż */
+            color: #d63384;
+            font-family: 'Verdana', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
 
+        .quiz-container {
+            background: white;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border: 2px solid #d63384;
+        }
+
+        h2 { margin-top: 0; }
+
+        .question {
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .options button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #fff;
+            border: 2px solid #d63384;
+            color: #d63384;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .options button:hover {
+            background-color: #d63384;
+            color: white;
+        }
+
+        /* Pasek postępu (kropki na dole) */
+        .progress {
+            margin-top: 20px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        a {
+            display: block;
+            margin-top: 30px;
+            color: #d63384;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h2>Jak dobrze nas znasz? ❤️</h2>
+        
+        <div id="quiz-box">
+            <p class="question" id="question-text">Ładowanie pytania...</p>
+            <div class="options" id="options-box">
+                </div>
+            <p class="progress" id="progress-text">Pytanie 1 z 3</p>
+        </div>
+    </div>
+
+    <a href="index.html">Poddaję się (wróć do muzeum)</a>
+
+    <script>
+        // --- TUTAJ WPISZ SWOJE PYTANIA ---
+        // Format: 
+        // { q: "Pytanie", a: ["Odp A", "Odp B", "Odp C"], correct: Numer_Poprawnej_Odpowiedzi (0, 1 lub 2) }
+        // Pamiętaj: liczymy od zera! (0 to pierwsza odp, 1 to druga, 2 to trzecia)
+        
+        const questions = [
+            {
+                q: "Gdzie poszliśmy na pierwszą randkę?",
+                a: ["Do kina", "Na spacer do parku", "Na pizzę"],
+                correct: 1 // To znaczy, że poprawna jest "Na spacer do parku"
+            },
+            {
+                q: "Jaki jest mój ulubiony kolor?",
+                a: ["Niebieski", "Czerwony", "Czarny"],
+                correct: 0 // Niebieski
+            },
+            {
+                q: "Co najbardziej w Tobie lubię?",
+                a: ["Twój uśmiech", "Twoje oczy", "Wszystko!", "To podchwytliwe..."],
+                correct: 2 // Wszystko!
+            }
+        ];
+
+        let currentQuestion = 0;
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById("question-text").innerText = q.q;
+            document.getElementById("progress-text").innerText = `Pytanie ${currentQuestion + 1} z ${questions.length}`;
+            
+            const optionsBox = document.getElementById("options-box");
+            optionsBox.innerHTML = ""; // Czyścimy poprzednie przyciski
+
+            // Tworzymy przyciski dla odpowiedzi
+            q.a.forEach((answer, index) => {
+                const btn = document.createElement("button");
+                btn.innerText = answer;
+                btn.onclick = () => checkAnswer(index);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            const correctIndex = questions[currentQuestion].correct;
+
+            if (selectedIndex === correctIndex) {
+                // DOBRA ODPOWIEDŹ
+                currentQuestion++;
+                
+                if (currentQuestion < questions.length) {
+                    loadQuestion(); // Następne pytanie
+                } else {
+                    gameWon(); // Koniec gry
+                }
+            } else {
+                // ZŁA ODPOWIEDŹ
+                alert("Oj, chyba nie... Spróbuj jeszcze raz Kochanie! 🙈");
+            }
+        }
+
+        function gameWon() {
+            // Zapisujemy wygraną dla Muzeum
+            localStorage.setItem('wygrana3', 'tak');
+            
+            document.querySelector(".quiz-container").innerHTML = `
+                <h2>Brawo! 🎉</h2>
+                <p>Znasz nas idealnie!</p>
+                <p>Trzecie zdjęcie zostało odblokowane.</p>
+                <button onclick="window.location.href='index.html'" style="padding:15px; background:#d63384; color:white; border:none; border-radius:5px; cursor:pointer;">Wróć do Muzeum</button>
+            `;
+        }
+
+        // Startujemy quiz
+        loadQuestion();
+
+    </script>
+</body>
+</html>
