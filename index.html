@@ -232,19 +232,9 @@
         /* Przyciski */
         .bottom-controls {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: center;
             margin: 60px 0;
-            align-items: center;
         }
-
-        #test-btn {
-            background: #ff4d4d; color: white; border: none;
-            padding: 12px 25px; font-weight: bold; border-radius: 25px;
-            cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
-            transition: transform 0.2s;
-        }
-        #test-btn:active { transform: scale(0.95); }
 
         #reset-btn {
             background: transparent; border: 1px solid #ccc; color: #999;
@@ -261,8 +251,8 @@
         <div class="light-overlay"></div>
         
         <header>
-            <h1>Nasza Historia</h1>
-            <div class="subtitle">Mini Muzeum</div>
+            <h1>Nasze Mini Muzeum</h1>
+            <div class="subtitle">Magiczne Pudełko Wspomnień</div>
         </header>
 
         <div class="gallery">
@@ -298,7 +288,7 @@
         </div>
 
         <div id="final-section">
-            <div class="final-title">Kocham Cię Kruszynko ❤️</div>
+            <div class="final-title">Kocham Cię Kruszyno ❤️</div>
             
             <div class="video-wrapper">
                 <video controls controlsList="nodownload" poster="fotka1.jpg">
@@ -308,7 +298,7 @@
             </div>
 
             <div class="final-text">
-                Jesteś moim Okruszkiem<br><br>
+                Jetseś moim Okruszkiem<br><br>
                 <b>Prawdziwy prezent czeka na Ciebie w domu,<br>
                 gdy już wrócisz z Tajlandii! 🇹🇭✈️</b>
                 <br>
@@ -319,7 +309,6 @@
     </div>
 
     <div class="bottom-controls">
-        <button id="test-btn" onclick="triggerFinale()">TEST FINAŁU (USUŃ PÓŹNIEJ)</button>
         <button id="reset-btn" onclick="reset()">Zresetuj wszystko</button>
     </div>
 
@@ -408,7 +397,7 @@
 
         // --- RESET ---
         function reset() {
-            if(confirm("Zresetować wszystko?")) {
+            if(confirm("Czy na pewno chcesz wyczyścić cały postęp i zacząć od nowa?")) {
                 localStorage.clear();
                 location.reload();
             }
