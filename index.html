@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nasze Mini Muzeum</title>
+    <title>Nasza Kolekcja Wspomnień</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         :root {
@@ -63,6 +64,7 @@
             box-shadow: 
                 0 20px 50px rgba(0,0,0,0.3), 
                 inset 0 0 80px rgba(139, 90, 43, 0.1);
+            transition: height 0.5s ease;
         }
 
         .light-overlay {
@@ -142,7 +144,6 @@
             filter: sepia(10%);
         }
 
-        /* Rozmiary */
         .portrait { width: 160px; height: 220px; }
         .landscape { width: 220px; height: 160px; }
         .square { width: 190px; height: 190px; }
@@ -151,42 +152,75 @@
         .oval .string-left { left: 45%; top: -25px; height: 30px; }
         .oval .string-right { display: none; }
 
-        /* --- FINALNY KOMUNIKAT (ZAMIAST PDF) --- */
-        #final-message {
-            margin-top: 50px;
+        /* --- FINALNA SEKCJA (PREMIUM) --- */
+        #final-section {
             display: none; /* Ukryte na start */
+            margin-top: 60px;
             text-align: center;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid var(--gold);
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
-            animation: popIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0; /* Do animacji wejścia */
+            transform: translateY(50px);
+            transition: all 1s ease-out;
         }
 
-        @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        #final-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding: 10px;
+            background: linear-gradient(135deg, #fff 0%, #fdfbf7 100%);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 15px rgba(212, 175, 55, 0.2), /* Złota poświata */
+                0 20px 40px rgba(0,0,0,0.2);
+            animation: goldPulse 3s infinite alternate;
+        }
+
+        @keyframes goldPulse {
+            from { box-shadow: 0 0 15px rgba(212, 175, 55, 0.2), 0 20px 40px rgba(0,0,0,0.2); }
+            to { box-shadow: 0 0 35px rgba(212, 175, 55, 0.6), 0 25px 50px rgba(0,0,0,0.3); }
+        }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+            outline: none;
         }
 
         .final-title {
             font-family: 'Dancing Script', cursive;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             color: var(--gold);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            opacity: 0; animation: slideIn 1s forwards 0.5s;
         }
 
         .final-text {
+            margin-top: 25px;
             font-size: 1rem;
             line-height: 1.6;
-            color: #555;
-            margin-bottom: 20px;
+            color: #444;
+            background: rgba(255,255,255,0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px dashed var(--gold);
+            opacity: 0; animation: slideIn 1s forwards 1.5s;
         }
 
         .final-icon {
             font-size: 3rem;
-            animation: bounce 2s infinite;
+            margin-top: 10px;
             display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes bounce {
@@ -195,10 +229,27 @@
             60% {transform: translateY(-5px);}
         }
 
+        /* Przyciski */
+        .bottom-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 60px 0;
+            align-items: center;
+        }
+
+        #test-btn {
+            background: #ff4d4d; color: white; border: none;
+            padding: 12px 25px; font-weight: bold; border-radius: 25px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+        #test-btn:active { transform: scale(0.95); }
+
         #reset-btn {
             background: transparent; border: 1px solid #ccc; color: #999;
-            margin: 50px 0; padding: 5px 10px; font-size: 10px; cursor: pointer;
-            opacity: 0.5;
+            padding: 8px 15px; font-size: 11px; cursor: pointer; opacity: 0.6;
+            border-radius: 20px;
         }
     </style>
 </head>
@@ -210,65 +261,70 @@
         <div class="light-overlay"></div>
         
         <header>
-            <h1>Nasze Mini Muzeum</h1>
+            <h1>Nasza Historia</h1>
             <div class="subtitle">Magiczne Pudełko Wspomnień</div>
         </header>
 
         <div class="gallery">
-
             <div class="spot portrait" onclick="gra(1)">
-                <div class="nail"></div>
-                <div class="string-left"></div><div class="string-right"></div>
+                <div class="nail"></div><div class="string-left"></div><div class="string-right"></div>
                 <div class="placeholder" id="p1"><span style="font-size:2rem;">❤️</span><br>Złap moją miłość</div>
                 <div class="frame" id="f1"><img src="fotka1.jpg" id="img1"></div>
             </div>
 
             <div class="spot landscape" onclick="gra(2)">
-                <div class="nail"></div>
-                <div class="string-left"></div><div class="string-right"></div>
+                <div class="nail"></div><div class="string-left"></div><div class="string-right"></div>
                 <div class="placeholder" id="p2"><span style="font-size:2rem;">✨</span><br>Znajdź pary</div>
                 <div class="frame" id="f2"><img src="fotka2.jpg" id="img2"></div>
             </div>
 
             <div class="spot square" onclick="gra(3)">
-                <div class="nail"></div>
-                <div class="string-left"></div><div class="string-right"></div>
+                <div class="nail"></div><div class="string-left"></div><div class="string-right"></div>
                 <div class="placeholder" id="p3"><span style="font-size:2rem;">🏹</span><br>Leć do celu</div>
                 <div class="frame" id="f3"><img src="fotka3.jpg" id="img3"></div>
             </div>
 
             <div class="spot oval" onclick="gra(4)">
-                <div class="nail"></div>
-                <div class="string-left"></div>
-                <div class="placeholder" id="p4"><span style="font-size:2rem;">🧩</span><br>Ułóż mnie w całość</div>
+                <div class="nail"></div><div class="string-left"></div>
+                <div class="placeholder" id="p4"><span style="font-size:2rem;">🧩</span><br>Ułóż nas w całość</div>
                 <div class="frame" id="f4"><img src="fotka4.jpg" id="img4"></div>
             </div>
 
             <div class="spot landscape" onclick="gra(5)">
-                <div class="nail"></div>
-                <div class="string-left"></div><div class="string-right"></div>
+                <div class="nail"></div><div class="string-left"></div><div class="string-right"></div>
                 <div class="placeholder" id="p5"><span style="font-size:2rem;">🌟</span><br>Połącz gwiazdy</div>
                 <div class="frame" id="f5"><img src="fotka5.jpg" id="img5"></div>
             </div>
-
         </div>
 
-        <div id="final-message">
-            <div class="final-title">Wszystkie wspomnienia zebrane!</div>
+        <div id="final-section">
+            <div class="final-title">Specjalnie dla Ciebie... ❤️</div>
+            
+            <div class="video-wrapper">
+                <video controls controlsList="nodownload" poster="fotka1.jpg">
+                    <source src="film.mp4" type="video/mp4">
+                    Twoja przeglądarka nie obsługuje wideo.
+                </video>
+            </div>
+
             <div class="final-text">
-                To jednak tylko cyfrowy wstęp...<br>
+                Wspomnienia są piękne, ale to dopiero początek...<br><br>
                 <b>Prawdziwy prezent czeka na Ciebie w domu,<br>
                 gdy już wrócisz z Tajlandii! 🇹🇭✈️</b>
+                <br>
+                <span class="final-icon">🎁</span>
             </div>
-            <div class="final-icon">🎁</div>
         </div>
 
     </div>
 
-    <button id="reset-btn" onclick="reset()">Zresetuj wszystko</button>
+    <div class="bottom-controls">
+        <button id="test-btn" onclick="triggerFinale()">TEST FINAŁU (USUŃ PÓŹNIEJ)</button>
+        <button id="reset-btn" onclick="reset()">Zresetuj wszystko</button>
+    </div>
 
     <script>
-        // --- 1. PYŁ ---
+        // --- PYŁ TŁA ---
         const dustContainer = document.getElementById('dust-container');
         for (let i = 0; i < 20; i++) {
             const speck = document.createElement('div');
@@ -281,9 +337,8 @@
             dustContainer.appendChild(speck);
         }
 
-        // --- 2. LOGIKA GRY ---
+        // --- LOGIKA GŁÓWNA ---
         document.addEventListener("DOMContentLoaded", () => {
-            // SPRAWDZANIE STANU
             let winCount = 0;
             for (let i = 1; i <= 5; i++) {
                 if (localStorage.getItem('wygrana' + i) === 'tak') {
@@ -291,16 +346,14 @@
                     winCount++;
                 }
             }
-            // Jeśli wszystko wygrane, pokaż wiadomość o prezencie
             if(winCount === 5) {
-                document.getElementById('final-message').style.display = 'block';
+                setTimeout(triggerFinale, 500); // Małe opóźnienie dla efektu
             }
         });
 
         function unlock(nr) {
             document.getElementById('p' + nr).style.display = 'none';
             document.getElementById('f' + nr).style.display = 'block';
-            
             const spot = document.getElementById('f' + nr).parentElement;
             spot.onclick = null; 
             spot.style.cursor = "default";
@@ -312,8 +365,50 @@
             }
         }
 
+        // --- FUNKCJA FINAŁOWA (KONFETTI + WIDEO) ---
+        function triggerFinale() {
+            const finalSection = document.getElementById('final-section');
+            if(finalSection.style.display === 'block') return; // Żeby nie odpalać 2 razy
+
+            finalSection.style.display = 'block';
+            
+            // 1. Animacja wejścia (slide up)
+            setTimeout(() => {
+                finalSection.classList.add('visible');
+                
+                // 2. Automatyczne przewinięcie do wideo
+                finalSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+
+            // 3. WYBUCH KONFETTI
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#d4af37', '#ff4d4d', '#ffffff'] // Złoty, czerwony, biały
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#d4af37', '#ff4d4d', '#ffffff']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // --- RESET ---
         function reset() {
-            if(confirm("Czy na pewno chcesz zresetować postęp?")) {
+            if(confirm("Zresetować wszystko?")) {
                 localStorage.clear();
                 location.reload();
             }
